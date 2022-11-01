@@ -8,22 +8,34 @@ func SimulateCellMotility() {
 func UpdateECM() {
 	// range over all cells on ECM
 	UpdateCell()
+	UpdateFibre()
 }
 
-func UpdateCell() {
-	UpdateAcceleration()
-	UpdateVelocity()
-	UpdatePosition()
+func (cell *Cell) UpdateCell() {
+	cell.UpdateProjection()
+	cell.UpdatePosition()
 }
 
-func UpdateAcceleration() {
+func (cell *Cell) UpdateProjection() {
+	ComputeNoise()
+	ComputeDragForce()
+	ComputePolarity()
+	FindNearestFibre()
+}
+
+func (cell *Cell) UpdatePosition() {
 
 }
 
-func UpdateVelocity() {
+func (fibre *Fibre) UpdateFibre() {
+	fibre.UpdatePosition()
+	fibre.UpdateDirection()
+}
+
+func (fibre *Fibre) UpdatePosition() {
 
 }
 
-func UpdatePosition() {
+func (fibre *Fibre) UpdateDirection() {
 
 }
