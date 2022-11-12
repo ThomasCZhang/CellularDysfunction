@@ -7,8 +7,12 @@ func SimulateCellMotility() {
 
 func UpdateECM() {
 	// range over all cells on ECM
-	UpdateCell()
-	UpdateFibre()
+	// Place holder. This is just here to get rid of compiler errors.
+	var cell Cell
+	var fibre Fibre
+	////
+	cell.UpdateCell()
+	fibre.UpdateFibre()
 }
 
 func (cell *Cell) UpdateCell() {
@@ -28,8 +32,10 @@ func (cell *Cell) UpdatePosition() {
 }
 
 func (fibre *Fibre) UpdateFibre() {
-	fibre.UpdatePosition()
+	fibre.UpdatePosition() // Maybe we don't need this.
 	fibre.UpdateDirection()
+	FindHypotenuse()
+	FindPerpendicularDistance()
 }
 
 func (fibre *Fibre) UpdatePosition() {
@@ -37,5 +43,29 @@ func (fibre *Fibre) UpdatePosition() {
 }
 
 func (fibre *Fibre) UpdateDirection() {
+
+}
+
+func ComputeNoise() {
+
+}
+
+func ComputeDragForce() {
+
+}
+
+func FindNearestFibre() {
+
+}
+
+func FindHypotenuse() {
+
+}
+
+func FindPerpendicularDistance() {
+
+}
+
+func ComputePolarity() {
 
 }
