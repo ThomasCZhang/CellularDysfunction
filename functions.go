@@ -28,7 +28,8 @@ func UpdateECM(currentECM *ECM, time float64) *ECM {
 	newECM := CopyECM(currentECM) // makes a deep copy of the ECM
 
 	for _, fibre := range newECM.fibres {
-		fibre.UpdateFibre()
+		nearestCell := fibre.FindNearestCell(newECM.cells) // returns a nearest cell
+		fibre.UpdateFibre(nearestCell)
 	}
 
 	for _, cell := range newECM.cells {
@@ -67,6 +68,8 @@ func (cell *Cell) UpdateCell(fibres []*fibre, threshold float64) {
 	cell.UpdatePosition()
 }
 
+
+
 // FindProjection finds the new projection vector caused by a fibre on the given cell
 // Input: Current cell and fibre
 // Output: The new projection vector of the cell caused by the fibre based on the direction of the fibre and random noise.
@@ -77,38 +80,41 @@ func FindProjection(cell *Cell, fibre *Fibre) OrderedPair {
 // UpdateProjection updates the projection vector of the cell using a new projection vector
 func (cell *Cell) UpdateProjection(newProjection OrderedPair) {
 	cell.ComputeDragForce() // computes F = speed x shape factor (c) x fluid viscosity (n) x projection vector + noise
-	ComputePolarity()
-}
-
-// UpdatePosition uses the updated projection vector to change the position of the cell.
-func (cell *Cell) UpdatePosition() {
-
-}
-
-func (fibre *Fibre) UpdateFibre() {
-	fibre.UpdatePosition() // Maybe we don't need this.
-	fibre.UpdateDirection()
-	FindHypotenuse()
-	FindPerpendicularDistance()
-}
-
-func (fibre *Fibre) UpdatePosition() {
-
-}
-
-func (fibre *Fibre) UpdateDirection() {
-
-}
-
-func ComputeNoise() {
-
 }
 
 func ComputeDragForce() {
 	ComputeNoise()
 }
 
+func ComputeNoise() {
+
+}
+
 func FindNearestFibre() {
+
+}
+// UpdatePosition uses the updated projection vector to change the position of the cell.
+func (cell *Cell) UpdatePosition() {
+
+}
+
+// UpdateFibre calculates the new angle of rotation and changes the position of the fibre
+// Input: Nearest cell
+func (fibre *Fibre) UpdateFibre(cell *Cell) {
+
+	// phi (angle of rotation) = theta (angle of cell from pivot) - arcsin[(1 - 0.1*integrins*(1-stiffness)*perpendicular distance D) / hypotenuse]
+
+	d := fibre.FindHypotenuse(cell) // find the hypotenuse of the cell to the pivot point of the fibre
+	D := fibre.FindPerpendicularDistance(cell) // find the perpendicular distance of the cell to the fibre
+	theta := ComputeTheta(d,D) // theta = arcsin(d / D)
+
+	phi := ComputePhi(theta,d,D,cell) // compute angle of rotation
+	fibre.UpdateDirection(phi) // updates direction vector of fibre using phi
+
+}
+
+
+func (fibre *Fibre) UpdateDirection() {
 
 }
 
@@ -117,9 +123,5 @@ func FindHypotenuse() {
 }
 
 func FindPerpendicularDistance() {
-
-}
-
-func ComputePolarity() {
 
 }
