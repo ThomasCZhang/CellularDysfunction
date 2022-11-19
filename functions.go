@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"math"
-	"math/random"
+	"math/rand"
 )
 
 // SimulateCellMotility takes a ECM object of cells and fibres and updates it over certain number of generations with a specified timestep.
