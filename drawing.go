@@ -10,7 +10,7 @@ import (
 //Every frequency steps, it generates a slice of images corresponding to drawing each Universe
 //on a canvasWidth x canvasWidth canvas.
 //A scaling factor is a final input that is used to scale the stars big enough to see them.
-func AnimateSystem(timePoints []*ECM, canvasWidth, frequency int, scalingFactor float64) []image.Image {
+func DrawECM(timePoints []*ECM, canvasWidth, frequency int, scalingFactor float64) []image.Image {
 	images := make([]image.Image, 0)
 
 	if len(timePoints) == 0 {
