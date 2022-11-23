@@ -108,7 +108,7 @@ func (fibre *Fibre) UpdateFibre(cell *Cell, S float64) {
 	D := fibre.FindPerpendicularDistance(cell) // find the perpendicular distance of the cell to the fibre
 	theta := math.Asin(d/D) // theta = arcsin(d / D)
 
-	phi := ComputePhi(theta, d, D, S, cell) // compute angle of rotation
+	phi := ComputePhi(theta, d, D, S, fibre, cell) // compute angle of rotation
 	fibre.UpdateDirection(phi) // updates direction vector of fibre using phi
 	fibre.UpdatePosition()
 }
@@ -133,9 +133,15 @@ func (fibre *Fibre) FindPivot(cell *Cell) {
 	}
 }
 
-func ComputePhi(theta, d, D, S float64, cell *Cell) float64 {
+func ComputePhi(theta, d, D, S float64, fibre *Fibre, cell *Cell) float64 {
 	alignFactor := (1 - 0.1*cell.integrin*(1-S))
-	return (theta - math.Asin(alignFactor*D/d))
+	phi := (theta - math.Asin(alignFactor*D/d))
+	if fibre.pivot.x <= cell.position.x && fibre.pivot.y <= cell.position.y {
+		return -1*phi
+	} else if fibre.pivot.x > cell.position.x && fibre.pivot.y > cell.position.y {
+		return -1*phi
+	}
+	return phi
 }
 
 
