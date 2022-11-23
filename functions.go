@@ -29,7 +29,7 @@ func UpdateECM(currentECM *ECM, time float64) *ECM {
 
 	for _, fibre := range newECM.fibres {
 		nearestCell := fibre.FindNearestCell(newECM.cells) // returns a nearest cell
-		fibre.UpdateFibre(nearestCell)
+		fibre.UpdateFibre(nearestCell, newECM.stiffness)
 	}
 
 	for _, cell := range newECM.cells {
@@ -103,14 +103,34 @@ func (cell *Cell) UpdatePosition() {
 func (fibre *Fibre) UpdateFibre(cell *Cell, S float64) {
 
 	// phi (angle of rotation) = theta (angle of cell from pivot) - arcsin[(1 - 0.1*integrins*(1-stiffness)*perpendicular distance D) / hypotenuse]
-
-	d := fibre.FindHypotenuse(cell) // find the hypotenuse of the cell to the pivot point of the fibre
+	fibre.FindPivot(cell)
+	d := ComputeDistance(fibre.pivot, cell.position) // find the hypotenuse of the cell to the pivot point of the fibre
 	D := fibre.FindPerpendicularDistance(cell) // find the perpendicular distance of the cell to the fibre
 	theta := math.Asin(d/D) // theta = arcsin(d / D)
 
 	phi := ComputePhi(theta, d, D, S, cell) // compute angle of rotation
 	fibre.UpdateDirection(phi) // updates direction vector of fibre using phi
+	fibre.UpdatePosition()
+}
 
+func (fibre *Fibre) FindPivot(cell *Cell) {
+	var endpoint1, endpoint2 OrderedPair
+	magnitude := math.Sqrt(fibre.direction.x*fibre.direction.x + fibre.direction.y*fibre.direction.y)
+	//calculate the ends of the fibres
+	endpoint1.x = fibre.position.x + fibre.direction.x*0.5*fibre.length/magnitude
+	endpoint1.y = fibre.position.y + fibre.direction.y*0.5*fibre.length/magnitude
+	endpoint1.x = fibre.position.x + fibre.direction.x*0.5*fibre.length/magnitude
+	endpoint1.y = fibre.position.y + fibre.direction.y*0.5*fibre.length/magnitude
+	//calculate the distance between the cell and each endpoint to identify the pivot
+	distance1 := ComputeDistance(cell.position, endpoint1)
+	distance2 := ComputeDistance(cell.position, endpoint2)
+	if distance1 < distance2 {
+		fibre.pivot.x = endpoint2.x
+		fibre.pivot.y = endpoint2.y
+	} else {
+		fibre.pivot.x = endpoint1.x
+		fibre.pivot.y = endpoint1.y
+	}
 }
 
 func ComputePhi(theta, d, D, S float64, cell *Cell) float64 {
@@ -119,25 +139,31 @@ func ComputePhi(theta, d, D, S float64, cell *Cell) float64 {
 }
 
 
-func (fibre *Fibre) UpdateDirection() {
-	
+func (fibre *Fibre) UpdateDirection(phi float64) {
+	x := fibre.direction.x
+	y := fibre.direction.y
+	fibre.direction.x = x*math.Cos(phi) - y*math.Sin(phi)
+	fibre.direction.y = x*math.Sin(phi) + y*math.Cos(phi)
 }
 
-func (fibre *Fibre) FindHypotenuse(cell *Cell) float64 {
-	// which is the pivot point of the cell???
-	//fibre.position is a filler for now
-	xDist := fibre.pivot.x - cell.position.x
-	yDist := fibre.pivot.y - cell.position.y
-	return math.Sqrt(xDist*xDist + yDist*yDist)
+func (fibre *Fibre) UpdatePosition() {
+	magnitude := math.Sqrt(fibre.direction.x*fibre.direction.x + fibre.direction.y*fibre.direction.y)
+	fibre.position.x = fibre.pivot.x + fibre.direction.x*0.5*fibre.length/magnitude
+	fibre.position.y = fibre.pivot.y + fibre.direction.y*0.5*fibre.length/magnitude
 }
 
 func (fibre *Fibre) FindPerpendicularDistance(cell *Cell) float64 {
 	// need to find coordinates of pivot point
-
 	A := fibre.pivot.y - fibre.position.y
 	B := fibre.position.x - fibre.pivot.x
 	C := fibre.pivot.x*fibre.position.y - fibre.position.x*fibre.pivot.y
 	numerator := math.Abs(A*cell.position.x + B*cell.position.y + C)
 	denominator := math.Sqrt(A*A + B*B)
 	return numerator/denominator
+}
+
+func ComputeDistance(p1, p2 OrderedPair) float64 {
+	xComp := p2.x - p1.x
+	yComp := p2.y - p1.y
+	return math.Sqrt(xComp*xComp + yComp*yComp)
 }
