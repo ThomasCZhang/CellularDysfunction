@@ -99,29 +99,45 @@ func (cell *Cell) UpdatePosition() {
 }
 
 // UpdateFibre calculates the new angle of rotation and changes the position of the fibre
-// Input: Nearest cell
-func (fibre *Fibre) UpdateFibre(cell *Cell) {
+// Input: Nearest cell, matrix stiffness float64 value
+func (fibre *Fibre) UpdateFibre(cell *Cell, S float64) {
 
 	// phi (angle of rotation) = theta (angle of cell from pivot) - arcsin[(1 - 0.1*integrins*(1-stiffness)*perpendicular distance D) / hypotenuse]
 
 	d := fibre.FindHypotenuse(cell) // find the hypotenuse of the cell to the pivot point of the fibre
 	D := fibre.FindPerpendicularDistance(cell) // find the perpendicular distance of the cell to the fibre
-	theta := ComputeTheta(d,D) // theta = arcsin(d / D)
+	theta := math.Asin(d/D) // theta = arcsin(d / D)
 
-	phi := ComputePhi(theta,d,D,cell) // compute angle of rotation
+	phi := ComputePhi(theta, d, D, S, cell) // compute angle of rotation
 	fibre.UpdateDirection(phi) // updates direction vector of fibre using phi
 
 }
 
+func ComputePhi(theta, d, D, S float64, cell *Cell) float64 {
+	alignFactor := (1 - 0.1*cell.integrin*(1-S))
+	return (theta - math.Asin(alignFactor*D/d))
+}
+
 
 func (fibre *Fibre) UpdateDirection() {
-
+	
 }
 
-func FindHypotenuse() {
-
+func (fibre *Fibre) FindHypotenuse(cell *Cell) float64 {
+	// which is the pivot point of the cell???
+	//fibre.position is a filler for now
+	xDist := fibre.pivot.x - cell.position.x
+	yDist := fibre.pivot.y - cell.position.y
+	return math.Sqrt(xDist*xDist + yDist*yDist)
 }
 
-func FindPerpendicularDistance() {
+func (fibre *Fibre) FindPerpendicularDistance(cell *Cell) float64 {
+	// need to find coordinates of pivot point
 
+	A := fibre.pivot.y - fibre.position.y
+	B := fibre.position.x - fibre.pivot.x
+	C := fibre.pivot.x*fibre.position.y - fibre.position.x*fibre.pivot.y
+	numerator := math.Abs(A*cell.position.x + B*cell.position.y + C)
+	denominator := math.Sqrt(A*A + B*B)
+	return numerator/denominator
 }
