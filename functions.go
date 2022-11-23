@@ -32,7 +32,7 @@ func UpdateECM(currentECM *ECM, time float64) *ECM {
 	}
 
 	for _, cell := range newECM.cells {
-		cell.UpdateCell()
+		cell.UpdateCell(newECM.fibres, thresh, time)
 	}
 	return newECM
 }
@@ -45,7 +45,7 @@ func CopyECM(currentECM *ECM) *ECM {
 // UpdateCell finds the new direction of a given cell based on the fibre that causes the least change in direction
 // Input: cell object and a list of updated fibres
 // Output: cell with updated projection and position
-func (cell *Cell) UpdateCell(fibres []*fibre, threshold float64) {
+func (cell *Cell) UpdateCell(fibres []*fibre, threshold float64, time float64) {
 
 	// range over all fibres and compute projection vectors caused by all fibres on the cell
 	// to make this easier, we can only pick fibres that are within a certain critical distance to the cell
@@ -64,17 +64,19 @@ func (cell *Cell) UpdateCell(fibres []*fibre, threshold float64) {
 		cell.UpdateProjection(newProjection) // Update the projection vector
 	}
 
-	cell.UpdatePosition()
+	cell.UpdatePosition(time)
 }
 
 // FindProjection finds the new projection vector caused by a fibre on the given cell
 // Input: Current cell and fibre
 // Output: The new projection vector of the cell caused by the fibre based on the direction of the fibre and random noise.
 func FindProjection(cell *Cell, fibre *Fibre) OrderedPair {
+
 }
 
 
 // UpdateProjection updates the projection vector of the cell using a new projection vector
+<<<<<<< Updated upstream
 func (cell *Cell) UpdateProjection(newProjection OrderedPair) {
 	cell.ComputeDragForce() // computes F = speed x shape factor (c) x fluid viscosity (n) x projection vector + noise
 	ComputePolarity()
@@ -82,9 +84,35 @@ func (cell *Cell) UpdateProjection(newProjection OrderedPair) {
 
 // UpdatePosition uses the updated projection vector to change the position of the cell.
 func (cell *Cell) UpdatePosition() {
+=======
+func (currCell *Cell) UpdateProjection(newProjection OrderedPair) OrderedPair {
 
+	// Update the projection vector of the cell
+	currCell.projection.x = newProjection.x
+	currCell.projection.y = newProjection.y
 }
 
+func (currCell *Cell) ComputeDragForce() OrderedPair {
+	// F = speed x shape factor (c) x fluid viscosity (n) x projection vector + noise
+	var Drag, FinalForce OrderedPair
+	var Noise float64
+
+	// Calculate the noise
+	Noise = rand.Float64()*1.0
+>>>>>>> Stashed changes
+
+	// Compute the drag force
+	Drag.x = currCell.speed * currCell.shapeFactor * currCell.viscocity * currCell.projection.x
+	Drag.y = currCell.speed * currCell.shapeFactor * currCell.viscocity * currCell.projection.y
+
+	// Add the noise to the drag force
+	FinalForce.x = Drag.x + Noise
+	FinalForce.y = Drag.y + Noise
+
+	return FinalForce
+}
+
+<<<<<<< Updated upstream
 func (fibre *Fibre) UpdateFibre() {
 	fibre.UpdatePosition() // Maybe we don't need this.
 	fibre.UpdateDirection()
@@ -93,6 +121,26 @@ func (fibre *Fibre) UpdateFibre() {
 }
 
 func (fibre *Fibre) UpdatePosition() {
+=======
+
+func FindNearestFibre() {
+
+}
+// UpdatePosition uses the updated projection vector to change the position of the cell.
+func (currCell *Cell) UpdatePosition(time float64) {
+	// The postion of the cell using the velocity and timeStep
+
+	var newPos, Drag OrderedPair
+	// Calculate the drag force using the projection vectors from the fibres
+	Drag := currCell.ComputeDragForce(currCell.projection)
+
+	// Calculte the new position
+	newPos.x = currCell.position.x + (Drag.x)*time
+	newPos.y = currCell.position.y + (Drag.y)*time
+
+	return newPos
+}
+>>>>>>> Stashed changes
 
 }
 
@@ -112,14 +160,32 @@ func FindNearestFibre() {
 
 }
 
-func FindHypotenuse() {
+func (fibre *Fibre) FindHypotenuse(currCell *Cell) float64 {
+	// Takes the position of the fibre
+	posFibre := fibre.position
+	var fibreCoord OrderedPair
 
+	fibreCoord.x = posFibre.x + (fibre.length)/2
+	fibreCoord.y = posFibre.y + (fibre.length)/2
+
+	// Get the hypotenuse
+	hypotenuse := Distance(fibreCoord, currCell.position)
+	return hypotenuse
 }
 
 func FindPerpendicularDistance() {
 
 }
 
+<<<<<<< Updated upstream
 func ComputePolarity() {
 
+=======
+//Distance takes two position ordered pairs and it returns the distance between these two points in 2-D space.
+func Distance(p1, p2 OrderedPair) float64 {
+	// this is the distance formula from days of precalculus long ago ...
+	deltaX := p1.x - p2.x
+	deltaY := p1.y - p2.y
+	return math.Sqrt(deltaX*deltaX + deltaY*deltaY)
+>>>>>>> Stashed changes
 }
