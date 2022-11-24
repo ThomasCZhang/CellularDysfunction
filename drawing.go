@@ -5,11 +5,11 @@ import (
 	"image"
 )
 
-//AnimateSystem takes a slice of Universe objects along with a canvas width
-//parameter and a frequency parameter.
-//Every frequency steps, it generates a slice of images corresponding to drawing each Universe
-//on a canvasWidth x canvasWidth canvas.
-//A scaling factor is a final input that is used to scale the stars big enough to see them.
+// AnimateSystem takes a slice of Universe objects along with a canvas width
+// parameter and a frequency parameter.
+// Every frequency steps, it generates a slice of images corresponding to drawing each Universe
+// on a canvasWidth x canvasWidth canvas.
+// A scaling factor is a final input that is used to scale the stars big enough to see them.
 func DrawECM(timePoints []*ECM, canvasWidth, frequency int, scalingFactor float64) []image.Image {
 	images := make([]image.Image, 0)
 
@@ -25,8 +25,8 @@ func DrawECM(timePoints []*ECM, canvasWidth, frequency int, scalingFactor float6
 	return images
 }
 
-//DrawToCanvas generates the image corresponding to a canvas after drawing a ECM
-//object's bodies on a square canvas that is canvasWidth pixels x canvasWidth pixels.
+// DrawToCanvas generates the image corresponding to a canvas after drawing a ECM
+// object's bodies on a square canvas that is canvasWidth pixels x canvasWidth pixels.
 func (e *ECM) DrawToCanvas(canvasWidth int, scalingFactor float64) image.Image {
 	if e == nil {
 		panic("Can't Draw a nil Universe.")
@@ -40,13 +40,14 @@ func (e *ECM) DrawToCanvas(canvasWidth int, scalingFactor float64) image.Image {
 	c.ClearRect(0, 0, canvasWidth, canvasWidth)
 	c.Fill()
 
-	for _, b := range e.fibres {
-		center_x := (b.position.x / e.width) * float64(canvasWidth)
-		center_y := (b.position.y / e.width) * float64(canvasWidth)
-		direction := b.direction
+	// Draw all the fibres
+	for _, f := range e.fibres {
+		center_x := (f.position.x / e.width) * float64(canvasWidth)
+		center_y := (f.position.y / e.width) * float64(canvasWidth)
+		direction := f.direction
 		magnitude := direction.CalculateMagnitude()
-		direction.x *= 0.5 * b.length / magnitude * float64(canvasWidth) / e.width
-		direction.y *= 0.5 * b.length / magnitude * float64(canvasWidth) / e.width
+		direction.x *= 0.5 * f.length / magnitude * float64(canvasWidth) / e.width
+		direction.y *= 0.5 * f.length / magnitude * float64(canvasWidth) / e.width
 
 		c.SetLineWidth(0.01 * float64(canvasWidth))
 		c.SetStrokeColor(canvas.MakeColor(100, 100, 200))
@@ -57,11 +58,11 @@ func (e *ECM) DrawToCanvas(canvasWidth int, scalingFactor float64) image.Image {
 	}
 
 	// range over all the bodies and draw them.
-	for _, b := range e.cells {
+	for _, c1 := range e.cells {
 		c.SetFillColor(canvas.MakeColor(200, 150, 200))
-		cx := (b.position.x / e.width) * float64(canvasWidth)
-		cy := (b.position.y / e.width) * float64(canvasWidth)
-		r := scalingFactor * (b.radius / e.width) * float64(canvasWidth)
+		cx := (c1.position.x / e.width) * float64(canvasWidth)
+		cy := (c1.position.y / e.width) * float64(canvasWidth)
+		r := scalingFactor * (c1.radius / e.width) * float64(canvasWidth)
 		c.Circle(cx, cy, r)
 		c.Fill()
 	}
