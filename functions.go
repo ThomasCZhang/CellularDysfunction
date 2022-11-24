@@ -103,45 +103,65 @@ func (cell *Cell) UpdatePosition() {
 func (fibre *Fibre) UpdateFibre(cell *Cell, S float64) {
 
 	// phi (angle of rotation) = theta (angle of cell from pivot) - arcsin[(1 - 0.1*integrins*(1-stiffness)*perpendicular distance D) / hypotenuse]
-	fibre.FindPivot(cell)
+	otherEnd := fibre.FindPivot(cell)
 	d := ComputeDistance(fibre.pivot, cell.position) // find the hypotenuse of the cell to the pivot point of the fibre
 	D := fibre.FindPerpendicularDistance(cell) // find the perpendicular distance of the cell to the fibre
 	theta := math.Asin(d/D) // theta = arcsin(d / D)
 
 	phi := ComputePhi(theta, d, D, S, fibre, cell) // compute angle of rotation
+	m, b := FindLine(fibre.pivot, cell.position)
+	yCoord := FindYOnLine(cell.position.x, m, b)
+	if fibre.pivot.x < cell.position.x {
+		if yCoord < cell.position.y {
+			phi *= -1
+		}
+	} else {
+		if yCoord > cell.position.y {
+			phi *= -1
+		}
+	}
 	fibre.UpdateDirection(phi) // updates direction vector of fibre using phi
 	fibre.UpdatePosition()
 }
 
-func (fibre *Fibre) FindPivot(cell *Cell) {
+func (fibre *Fibre) FindPivot(cell *Cell) OrderedPair {
 	var endpoint1, endpoint2 OrderedPair
 	magnitude := math.Sqrt(fibre.direction.x*fibre.direction.x + fibre.direction.y*fibre.direction.y)
 	//calculate the ends of the fibres
 	endpoint1.x = fibre.position.x + fibre.direction.x*0.5*fibre.length/magnitude
 	endpoint1.y = fibre.position.y + fibre.direction.y*0.5*fibre.length/magnitude
-	endpoint1.x = fibre.position.x + fibre.direction.x*0.5*fibre.length/magnitude
-	endpoint1.y = fibre.position.y + fibre.direction.y*0.5*fibre.length/magnitude
+	endpoint2.x = fibre.position.x - fibre.direction.x*0.5*fibre.length/magnitude
+	endpoint2.y = fibre.position.y - fibre.direction.y*0.5*fibre.length/magnitude
 	//calculate the distance between the cell and each endpoint to identify the pivot
 	distance1 := ComputeDistance(cell.position, endpoint1)
 	distance2 := ComputeDistance(cell.position, endpoint2)
 	if distance1 < distance2 {
 		fibre.pivot.x = endpoint2.x
 		fibre.pivot.y = endpoint2.y
+		return endpoint1
 	} else {
 		fibre.pivot.x = endpoint1.x
 		fibre.pivot.y = endpoint1.y
+		fibre.direction.x *= -1
+		fibre.direction.y *= -1
+		return endpoint2
 	}
 }
 
 func ComputePhi(theta, d, D, S float64, fibre *Fibre, cell *Cell) float64 {
 	alignFactor := (1 - 0.1*cell.integrin*(1-S))
 	phi := (theta - math.Asin(alignFactor*D/d))
-	if fibre.pivot.x <= cell.position.x && fibre.pivot.y <= cell.position.y {
-		return -1*phi
-	} else if fibre.pivot.x > cell.position.x && fibre.pivot.y > cell.position.y {
-		return -1*phi
-	}
 	return phi
+}
+
+func FindLine(p1, p2 OrderedPair) (float64, float64) {
+	m := (p2.y - p1.y) / (p2.x - p1.x)
+	b := p1.y - m*p1.x
+	return m, b
+}
+
+func FindYOnLine(x, m, b float64) float64 {
+	return (m*x + b)
 }
 
 
