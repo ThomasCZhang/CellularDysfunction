@@ -29,7 +29,7 @@ func UpdateECM(currentECM *ECM, time float64) *ECM {
 
 	for _, fibre := range newECM.fibres {
 		nearestCell := fibre.FindNearestCell(newECM.cells) // returns a nearest cell
-		fibre.UpdateFibre(nearestCell)
+		fibre.UpdateFibre(nearestCell, newECM.stiffness)
 	}
 
 	for _, cell := range newECM.cells {
@@ -99,29 +99,97 @@ func (cell *Cell) UpdatePosition() {
 }
 
 // UpdateFibre calculates the new angle of rotation and changes the position of the fibre
-// Input: Nearest cell
-func (fibre *Fibre) UpdateFibre(cell *Cell) {
+// Input: Nearest cell, matrix stiffness float64 value
+func (fibre *Fibre) UpdateFibre(cell *Cell, S float64) {
 
 	// phi (angle of rotation) = theta (angle of cell from pivot) - arcsin[(1 - 0.1*integrins*(1-stiffness)*perpendicular distance D) / hypotenuse]
-
-	d := fibre.FindHypotenuse(cell) // find the hypotenuse of the cell to the pivot point of the fibre
+	otherEnd := fibre.FindPivot(cell)
+	d := ComputeDistance(fibre.pivot, cell.position) // find the hypotenuse of the cell to the pivot point of the fibre
 	D := fibre.FindPerpendicularDistance(cell) // find the perpendicular distance of the cell to the fibre
-	theta := ComputeTheta(d,D) // theta = arcsin(d / D)
+	theta := math.Asin(d/D) // theta = arcsin(d / D)
 
-	phi := ComputePhi(theta,d,D,cell) // compute angle of rotation
+	phi := ComputePhi(theta, d, D, S, fibre, cell) // compute angle of rotation
+	m, b := FindLine(fibre.pivot, cell.position)
+	yCoord := FindYOnLine(cell.position.x, m, b)
+	if fibre.pivot.x < cell.position.x {
+		if yCoord < cell.position.y {
+			phi *= -1
+		}
+	} else {
+		if yCoord > cell.position.y {
+			phi *= -1
+		}
+	}
 	fibre.UpdateDirection(phi) // updates direction vector of fibre using phi
+	fibre.UpdatePosition()
+}
 
+func (fibre *Fibre) FindPivot(cell *Cell) OrderedPair {
+	var endpoint1, endpoint2 OrderedPair
+	magnitude := math.Sqrt(fibre.direction.x*fibre.direction.x + fibre.direction.y*fibre.direction.y)
+	//calculate the ends of the fibres
+	endpoint1.x = fibre.position.x + fibre.direction.x*0.5*fibre.length/magnitude
+	endpoint1.y = fibre.position.y + fibre.direction.y*0.5*fibre.length/magnitude
+	endpoint2.x = fibre.position.x - fibre.direction.x*0.5*fibre.length/magnitude
+	endpoint2.y = fibre.position.y - fibre.direction.y*0.5*fibre.length/magnitude
+	//calculate the distance between the cell and each endpoint to identify the pivot
+	distance1 := ComputeDistance(cell.position, endpoint1)
+	distance2 := ComputeDistance(cell.position, endpoint2)
+	if distance1 < distance2 {
+		fibre.pivot.x = endpoint2.x
+		fibre.pivot.y = endpoint2.y
+		return endpoint1
+	} else {
+		fibre.pivot.x = endpoint1.x
+		fibre.pivot.y = endpoint1.y
+		fibre.direction.x *= -1
+		fibre.direction.y *= -1
+		return endpoint2
+	}
+}
+
+func ComputePhi(theta, d, D, S float64, fibre *Fibre, cell *Cell) float64 {
+	alignFactor := (1 - 0.1*cell.integrin*(1-S))
+	phi := (theta - math.Asin(alignFactor*D/d))
+	return phi
+}
+
+func FindLine(p1, p2 OrderedPair) (float64, float64) {
+	m := (p2.y - p1.y) / (p2.x - p1.x)
+	b := p1.y - m*p1.x
+	return m, b
+}
+
+func FindYOnLine(x, m, b float64) float64 {
+	return (m*x + b)
 }
 
 
-func (fibre *Fibre) UpdateDirection() {
-
+func (fibre *Fibre) UpdateDirection(phi float64) {
+	x := fibre.direction.x
+	y := fibre.direction.y
+	fibre.direction.x = x*math.Cos(phi) - y*math.Sin(phi)
+	fibre.direction.y = x*math.Sin(phi) + y*math.Cos(phi)
 }
 
-func FindHypotenuse() {
-
+func (fibre *Fibre) UpdatePosition() {
+	magnitude := math.Sqrt(fibre.direction.x*fibre.direction.x + fibre.direction.y*fibre.direction.y)
+	fibre.position.x = fibre.pivot.x + fibre.direction.x*0.5*fibre.length/magnitude
+	fibre.position.y = fibre.pivot.y + fibre.direction.y*0.5*fibre.length/magnitude
 }
 
-func FindPerpendicularDistance() {
+func (fibre *Fibre) FindPerpendicularDistance(cell *Cell) float64 {
+	// need to find coordinates of pivot point
+	A := fibre.pivot.y - fibre.position.y
+	B := fibre.position.x - fibre.pivot.x
+	C := fibre.pivot.x*fibre.position.y - fibre.position.x*fibre.pivot.y
+	numerator := math.Abs(A*cell.position.x + B*cell.position.y + C)
+	denominator := math.Sqrt(A*A + B*B)
+	return numerator/denominator
+}
 
+func ComputeDistance(p1, p2 OrderedPair) float64 {
+	xComp := p2.x - p1.x
+	yComp := p2.y - p1.y
+	return math.Sqrt(xComp*xComp + yComp*yComp)
 }

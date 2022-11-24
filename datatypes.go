@@ -13,8 +13,8 @@ type Cell struct {
 }
 
 type Fibre struct {
-	length, width       float64
-	position, direction OrderedPair
+	length, width float64
+	position, direction, pivot OrderedPair
 }
 
 type OrderedPair struct {
