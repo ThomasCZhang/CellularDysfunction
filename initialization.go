@@ -8,19 +8,19 @@ import (
 // InitializeECM generates a new ECM object
 // Input: number of fibres, number of cells, width of ECM, speed of cells, stiffness of matrix
 // Output: pointer to ECM object made using given parameters
-func InitializeECM(numFibres, numCells, width int, speed float64, stiffness float64) *ECM {
+func InitializeECM(numFibres, numCells int, width, speed float64, stiffness float64) *ECM {
 	var newECM ECM
 	newECM.width = width
 	newECM.stiffness = stiffness
 	newECM.fibres = InitializeFibres(numFibres, width)
-	newECM.cells = InitializeCells(numCells, speed)
+	newECM.cells = InitializeCells(numCells, width, speed)
 	return &newECM
 }
 
 // InitializeFibres generates an array of identical fibres that only vary in position and direction
 // Input: number of fibres and ECM width
 // Output: a slice of pointers to distinct fibre objects with unique positions and directions
-func InitializeFibres(numFibres, width int) []*Fibre {
+func InitializeFibres(numFibres int, width float64) []*Fibre {
 
 	FibreArray := make([]*Fibre, numFibres)
 
@@ -48,7 +48,7 @@ func InitializeFibres(numFibres, width int) []*Fibre {
 // InitializeCells generates an array of identical cells that only vary in position and projection
 // Input: number of cells
 // Output: a slice of pointers to distinct cell objects with unique positions and directions
-func InitializeCells(numCells int, cellSpeed float64) []*Cell {
+func InitializeCells(numCells int, width, cellSpeed float64) []*Cell {
 
 	CellArray := make([]*Cell, numCells)
 
@@ -84,7 +84,7 @@ func GenerateYDirection(xDirection float64) float64 {
 
 	// determine sign of y randomly
 	someInt := rand.Int()
-
+	var sign float64
 	if someInt%2 == 0 {
 		sign = 1.0
 	} else {

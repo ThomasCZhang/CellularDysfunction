@@ -45,7 +45,7 @@ func (e *ECM) DrawToCanvas(canvasWidth int, scalingFactor float64) image.Image {
 		center_x := (f.position.x / e.width) * float64(canvasWidth)
 		center_y := (f.position.y / e.width) * float64(canvasWidth)
 		direction := f.direction
-		magnitude := direction.CalculateMagnitude()
+		magnitude := f.direction.Magnitude()
 		direction.x *= 0.5 * f.length / magnitude * float64(canvasWidth) / e.width
 		direction.y *= 0.5 * f.length / magnitude * float64(canvasWidth) / e.width
 
