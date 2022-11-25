@@ -125,7 +125,10 @@ func (fibre *Fibre) FindPerpendicularDistance(cell *Cell) float64 {
 	return numerator / denominator
 }
 
-func (fibre *Fibre) FindNearestCell([]*Cell) *Cell {
+// FindNearestCell: Finds the cell nearest to the center of a Fibre object.
+// Input: fibre (*Fibre) a pointer to the Fibre object.
+// cells ([]*Cell) A slice of pointers to cell objects. This slice contains all the cells in the ECM.
+func (fibre *Fibre) FindNearestCell(cells []*Cell) *Cell {
 	// Placeholder function.
 	var cell Cell
 	return &cell

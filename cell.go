@@ -16,7 +16,7 @@ func (cell *Cell) UpdateCell(fibres []*Fibre, threshold float64, time float64) {
 	// range over all fibres and compute projection vectors caused by all fibres on the cell
 	// to make this easier, we can only pick fibres that are within a certain critical distance to the cell
 
-	nearestFibres := cell.FindNearestFibres(threshold, fibres) // returns a slice of nearest fibres within a certain threshold distance
+	nearestFibres := cell.FindNearbyFibres(threshold, fibres) // returns a slice of nearest fibres within a certain threshold distance
 	var changeMagnitude float64
 	var netProjection OrderedPair
 	// First we loop through all the fibres, to find the net projection due to all the NearestFibres
@@ -45,7 +45,13 @@ func (cell *Cell) UpdateCell(fibres []*Fibre, threshold float64, time float64) {
 	cell.UpdatePosition(time)
 }
 
-func (currCell *Cell) FindNearestFibres(threshold float64, fibres []*Fibre) []*Fibre {
+// FindNearbyFibres: Finds all fibres who's centers are within some threshold distance
+// from teh center of a cell.
+// Input: currCell (*Cell) Pointer to a cell object. Checking distance of fibre's center
+// to this cell's center.
+// threshold (float64): The max distance in which a fibre can be considered "nearby"
+// fibres ([]*Fibre) a slice of pointers to Fibre objects. These are the fibres that are in the ECM.
+func (currCell *Cell) FindNearbyFibres(threshold float64, fibres []*Fibre) []*Fibre {
 	var nearestFibres []*Fibre
 
 	for i := 0; i < len(fibres); i++ {
@@ -69,6 +75,9 @@ func FindProjection(cell *Cell, fibre *Fibre) OrderedPair {
 	return newProjection
 }
 
+// FindMagnitudeChange: Calculates the cosine of the angle between two vectors and
+// returns the value as a float64.
+// Input: projectionA, projectionB (OrderedPair) The two vectors that will be compared.
 func FindMagnitudeChange(projectionA, projectionB OrderedPair) float64 {
 	var cos float64
 	// Find the dot product of the two vectors
@@ -85,6 +94,9 @@ func FindMagnitudeChange(projectionA, projectionB OrderedPair) float64 {
 	return cos
 }
 
+// UpdateProjection: Updates the projection vector of a cell. (Direction of polarity)
+// Input: currCell (*Cell) A pointer to the Cell object being updated.
+// newProjection (OrderedPair), the new projection vector of the cell.
 func (currCell *Cell) UpdateProjection(newProjection OrderedPair) {
 
 	// Update the projection vector of the cell
@@ -92,6 +104,8 @@ func (currCell *Cell) UpdateProjection(newProjection OrderedPair) {
 	currCell.projection.y = newProjection.y
 }
 
+// ComputeDragForce: Computes the drag force acting on a cell by all nearby fibres.
+// Input: currCell (*Cell) a pointer to the Cell object.
 func (currCell *Cell) ComputeDragForce() OrderedPair {
 	// F = speed x shape factor (c) x fluid viscosity (n) x projection vector + noise
 	var Drag, FinalForce OrderedPair
@@ -109,10 +123,6 @@ func (currCell *Cell) ComputeDragForce() OrderedPair {
 	FinalForce.y = Drag.y + Noise
 
 	return FinalForce
-}
-
-func FindNearestFibre() {
-
 }
 
 // UpdatePosition uses the updated projection vector to change the position of the cell.
