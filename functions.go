@@ -39,7 +39,7 @@ func UpdateECM(currentECM *ECM, time float64) *ECM {
 
 // CopyECM creates a deep copy of the given ECM
 func CopyECM(currentECM *ECM) *ECM {
-	var newECM *ECM
+	var newECM ECM
 
 	newECM.width = currentECM.width
 	newECM.stiffness = currentECM.stiffness
@@ -70,7 +70,7 @@ func CopyECM(currentECM *ECM) *ECM {
 		newECM.cells[i].projection = currentECM.cells[i].projection
 	}
 
-	return newECM
+	return &newECM
 }
 
 // Distance: Takes two position ordered pairs and it returns the distance between these two points in 2-D space.

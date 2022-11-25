@@ -49,7 +49,7 @@ func (e *ECM) DrawToCanvas(canvasWidth int, scalingFactor float64) image.Image {
 		direction.x *= 0.5 * f.length / magnitude * float64(canvasWidth) / e.width
 		direction.y *= 0.5 * f.length / magnitude * float64(canvasWidth) / e.width
 
-		c.SetLineWidth(0.01 * float64(canvasWidth))
+		c.SetLineWidth(f.width / e.width * float64(canvasWidth))
 		c.SetStrokeColor(canvas.MakeColor(100, 100, 200))
 		c.MoveTo(center_x-direction.x, center_y-direction.y)
 		c.LineTo(center_x+direction.x, center_y+direction.y)

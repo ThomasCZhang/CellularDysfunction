@@ -130,6 +130,13 @@ func (fibre *Fibre) FindPerpendicularDistance(cell *Cell) float64 {
 // cells ([]*Cell) A slice of pointers to cell objects. This slice contains all the cells in the ECM.
 func (fibre *Fibre) FindNearestCell(cells []*Cell) *Cell {
 	// Placeholder function.
-	var cell Cell
-	return &cell
+	nearestCell := cells[0]
+	currentDistance := fibre.FindPerpendicularDistance(cells[0])
+	for _, cell := range cells {
+		newDistance := fibre.FindPerpendicularDistance(cell)
+		if newDistance < currentDistance {
+			nearestCell = cell
+		}
+	}
+	return nearestCell
 }
