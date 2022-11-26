@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"math"
 	"math/rand"
 )
 
@@ -17,34 +19,23 @@ type Cell struct {
 func (cell *Cell) UpdateCell(fibres []*Fibre, threshold float64, time float64) {
 	// range over all fibres and compute projection vectors caused by all fibres on the cell
 	// to make this easier, we can only pick fibres that are within a certain critical distance to the cell
+	nearbyFibres := cell.FindNearbyFibres(threshold, fibres)    // returns a slice of nearest fibres within a certain threshold distance
+	cell.projection = cell.CalculateNewProjection(nearbyFibres) // Normalized net force acting on the cell from all nearby fibres
 
-	nearestFibres := cell.FindNearbyFibres(threshold, fibres) // returns a slice of nearest fibres within a certain threshold distance
 	var changeMagnitude float64
-	var netProjection OrderedPair
-	// First we loop through all the fibres, to find the net projection due to all the NearestFibres
-	for _, fibre := range nearestFibres {
-		netProjection.x += fibre.projection.x
-		netProjection.y += fibre.projection.y
-	}
-
-	netProjection.x = netProjection.x / float64(len(nearestFibres))
-	netProjection.y = netProjection.y / float64(len(nearestFibres))
-
 	var indexMin int
-	// Then we will loop through the fibres again to find the smallest change in projection
-	for index, fibre := range nearestFibres {
-		newProjection := FindProjection(cell, fibre)
-		delta_magnitude := FindMagnitudeChange(newProjection, cell.projection)
+	// Then we will loop through the fibres again to find the smallest change in projectiono
+	for index, fibre := range nearbyFibres {
+		delta_magnitude := FindAngleChange(cell.projection, fibre.direction)
 		if index == 0 { // set default magnitude of change to first one
-			changeMagnitude = delta_magnitude
-		}
-		if delta_magnitude > changeMagnitude { // find the minimum magnitude of change
+			changeMagnitude = math.Abs(delta_magnitude)
+		} else if math.Abs(delta_magnitude) > changeMagnitude { // find the minimum magnitude of change
 			changeMagnitude = delta_magnitude
 			indexMin = index
 		}
 	}
 	// fmt.Println("Minimum Index is: ", indexMin)
-	cell.UpdateProjection(nearestFibres[indexMin].direction) // Update the projection vector
+	cell.UpdateProjection(nearbyFibres[indexMin].direction) // Update the projection vector
 	cell.UpdatePosition(time)
 }
 
@@ -66,45 +57,29 @@ func (currCell *Cell) FindNearbyFibres(threshold float64, fibres []*Fibre) []*Fi
 	return nearbyFibres
 }
 
-// FindProjection finds the new projection vector caused by a fibre on the given cell
-// Input: Current cell and fibre
-// Output: The new projection vector of the cell caused by the fibre based on the direction of the fibre and random noise.
-func FindProjection(cell *Cell, fibre *Fibre) OrderedPair {
-	var newProjection OrderedPair
-
-	newProjection.x = cell.projection.x + fibre.projection.x
-	newProjection.y = cell.projection.y + fibre.projection.y
-
-	return newProjection
-}
-
-// FindMagnitudeChange: Calculates the cosine of the angle between two vectors and
-// returns the value as a float64.
-// Input: projectionA, projectionB (OrderedPair) The two vectors that will be compared.
-func FindMagnitudeChange(projectionA, projectionB OrderedPair) float64 {
-	var cos float64
-	// Find the dot product of the two vectors
-	dot := (projectionA.x * projectionB.x) + (projectionA.y * projectionB.y)
-
-	// Find the magnitude of the two vectors
-	magA := projectionA.Magnitude()
-	magB := projectionB.Magnitude()
-
-	// Find the cos theta value
-	cos = dot / (magA * magB)
-
-	// return the cos theta value
-	return cos
+// FindAngleChange: Calculates the cosine of the angle between two vectors and
+// returns the value as a float64. If the angle is > pi/2 radians, then takes
+// then takes the negative change instead.
+// Input:
+// v1, v2 (OrderedPair) The two vectors that will be compared.
+func FindAngleChange(v1, v2 OrderedPair) float64 {
+	theta := CalculateAngleBetweenVectors2D(v1, v2)
+	if theta > math.Pi/2 {
+		theta -= math.Pi
+	}
+	return theta
 }
 
 // UpdateProjection: Updates the projection vector of a cell. (Direction of polarity)
 // Input: currCell (*Cell) A pointer to the Cell object being updated.
 // newProjection (OrderedPair), the new projection vector of the cell.
-func (currCell *Cell) UpdateProjection(newProjection OrderedPair) {
-
+func (c *Cell) UpdateProjection(newProjection OrderedPair) {
+	if DotProduct2D(c.projection, newProjection) < 0 {
+		newProjection = MultiplyVectorByConstant2D(newProjection, -1.0)
+	}
 	// Update the projection vector of the cell
-	currCell.projection.x = newProjection.x
-	currCell.projection.y = newProjection.y
+	c.projection.x = newProjection.x
+	c.projection.y = newProjection.y
 }
 
 // ComputeDragForce: Computes the drag force acting on a cell by all nearby fibres.
@@ -135,7 +110,9 @@ func (currCell *Cell) UpdatePosition(time float64) {
 	var newPos, drag OrderedPair
 	// Calculate the drag force using the projection vectors from the fibres
 	drag = currCell.ComputeDragForce()
-
+	fmt.Println("Cell Projection Vector: ", currCell.projection)
+	fmt.Println("Drag Force: ", drag)
+	fmt.Println("time: ", time)
 	// Calculte the new position
 	newPos.x = currCell.position.x + (drag.x)*time
 	newPos.y = currCell.position.y + (drag.y)*time
@@ -153,4 +130,50 @@ func (c *Cell) CopyCell() *Cell {
 	newCell.position = c.position
 	newCell.projection = c.projection
 	return &newCell
+}
+
+// CalculateNewProjection: Calculates the new projection vector of the cell based on nearby fibres.
+// Input:
+// c (*Cell) a pointer to the Cell object being acted upon
+// fibres ([]*Slice) a slice of pointers to nearby fibres
+// Output:
+// (OrderedPair) The new normalized projection vector of the cell as an OrderedPair.
+func (c *Cell) CalculateNewProjection(fibres []*Fibre) OrderedPair {
+	netForce := c.CalculateNetForce(fibres)
+	netForce.Normalize()
+	return netForce
+}
+
+// CalculateNetForce: Calculates the net force acting on the cell from all nearby fibres.
+// Input:
+// c (*Cell) a pointer to the Cell object being acted upon
+// fibres ([]*Slice) a slice of pointers to nearby fibres
+// Output:
+// (OrderedPair) The net force acting on the cell as an OrderedPair.
+func (c *Cell) CalculateNetForce(fibres []*Fibre) OrderedPair {
+	var netForce OrderedPair
+	for _, val := range fibres {
+		sign := 1.0
+		if DotProduct2D(c.projection, val.direction) < 0 {
+			sign *= -1
+		}
+		noise := sign * (1 + rand.NormFloat64())
+		projectionVector := ProjectVector(c.projection, MultiplyVectorByConstant2D(val.direction, noise))
+		netForce.x += projectionVector.x
+		netForce.y += projectionVector.y
+	}
+	return netForce
+}
+
+// Not quite sure what this is for.
+// FindProjection finds the new projection vector caused by a fibre on the given cell
+// Input: Current cell and fibre
+// Output: The new projection vector of the cell caused by the fibre based on the direction of the fibre and random noise.
+func FindProjection(cell *Cell, fibre *Fibre) OrderedPair {
+	var newProjection OrderedPair
+
+	newProjection.x = cell.projection.x + fibre.projection.x
+	newProjection.y = cell.projection.y + fibre.projection.y
+
+	return newProjection
 }

@@ -99,6 +99,7 @@ func (f *Fibre) UpdateDirection(phi float64) {
 	y := f.direction.y
 	f.direction.x = x*math.Cos(phi) - y*math.Sin(phi)
 	f.direction.y = x*math.Sin(phi) + y*math.Cos(phi)
+	f.direction.Normalize()
 }
 
 // UpdatePosition: Updates the position of a fibre.

@@ -88,7 +88,7 @@ func InitializeCells(numCells int, width, cellSpeed float64) []*Cell {
 func GenerateYDirection(xDirection float64) float64 {
 
 	// determine sign of y randomly
-	someInt := rand.Int()
+	someInt := rand.Intn(2)
 	var sign float64
 	if someInt%2 == 0 {
 		sign = 1.0
