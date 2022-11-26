@@ -21,7 +21,7 @@ func (e *ECM) UpdateECM(time float64) *ECM {
 	for _, fibre := range newECM.fibres {
 		nearestCell := fibre.FindNearestCell(newECM.cells) // returns a nearest cell
 		if ComputeDistance(nearestCell.position, fibre.position) <= thresh {
-			fibre.UpdateFibre(nearestCell, newECM.stiffness)
+			fibre.UpdateFibre(nearestCell, ECMstiffness)
 		}
 	}
 
@@ -35,8 +35,8 @@ func (e *ECM) UpdateECM(time float64) *ECM {
 func (e *ECM) CopyECM() *ECM {
 	var newECM ECM
 
-	newECM.width = e.width
-	newECM.stiffness = e.stiffness
+	// newECM.width = e.width
+	// newECM.stiffness = e.stiffness
 
 	totalFibres := len(e.fibres)
 	totalCells := len(e.cells)

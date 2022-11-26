@@ -42,14 +42,14 @@ func (e *ECM) DrawToCanvas(canvasWidth int, scalingFactor float64) image.Image {
 
 	// Draw all the fibres
 	for _, f := range e.fibres {
-		center_x := (f.position.x / e.width) * float64(canvasWidth)
-		center_y := (f.position.y / e.width) * float64(canvasWidth)
+		center_x := (f.position.x / ECMwidth) * float64(canvasWidth)
+		center_y := (f.position.y / ECMwidth) * float64(canvasWidth)
 		direction := f.direction
 		magnitude := f.direction.Magnitude()
-		direction.x *= 0.5 * f.length / magnitude * float64(canvasWidth) / e.width
-		direction.y *= 0.5 * f.length / magnitude * float64(canvasWidth) / e.width
+		direction.x *= 0.5 * f.length / magnitude * float64(canvasWidth) / ECMwidth
+		direction.y *= 0.5 * f.length / magnitude * float64(canvasWidth) / ECMwidth
 
-		c.SetLineWidth(f.width / e.width * float64(canvasWidth))
+		c.SetLineWidth(f.width / ECMwidth * float64(canvasWidth))
 		c.SetStrokeColor(canvas.MakeColor(100, 100, 200))
 		c.MoveTo(center_x-direction.x, center_y-direction.y)
 		c.LineTo(center_x+direction.x, center_y+direction.y)
@@ -60,9 +60,9 @@ func (e *ECM) DrawToCanvas(canvasWidth int, scalingFactor float64) image.Image {
 	// range over all the bodies and draw them.
 	for _, c1 := range e.cells {
 		c.SetFillColor(canvas.MakeColor(200, 150, 200))
-		cx := (c1.position.x / e.width) * float64(canvasWidth)
-		cy := (c1.position.y / e.width) * float64(canvasWidth)
-		r := scalingFactor * (c1.radius / e.width) * float64(canvasWidth)
+		cx := (c1.position.x / ECMwidth) * float64(canvasWidth)
+		cy := (c1.position.y / ECMwidth) * float64(canvasWidth)
+		r := scalingFactor * (c1.radius / ECMwidth) * float64(canvasWidth)
 		c.Circle(cx, cy, r)
 		c.Fill()
 	}

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"math"
 	"math/rand"
 )
@@ -10,11 +9,15 @@ import (
 // Input: number of fibres, number of cells, width of ECM, speed of cells, stiffness of matrix
 // Output: pointer to ECM object made using given parameters
 func InitializeECM(numFibres, numCells int, width, speed float64, stiffness float64) *ECM {
+
+	ECMwidth = width
+	ECMstiffness = stiffness
+	CellSpeed = speed
 	var newECM ECM
-	newECM.width = width
-	newECM.stiffness = stiffness
+	// newECM.width = width
+	// newECM.stiffness = stiffness
 	newECM.fibres = InitializeFibres(numFibres, width)
-	newECM.cells = InitializeCells(numCells, width, speed)
+	newECM.cells = InitializeCells(numCells, width)
 	return &newECM
 }
 
@@ -49,7 +52,7 @@ func InitializeFibres(numFibres int, width float64) []*Fibre {
 // InitializeCells generates an array of identical cells that only vary in position and projection
 // Input: number of cells
 // Output: a slice of pointers to distinct cell objects with unique positions and directions
-func InitializeCells(numCells int, width, cellSpeed float64) []*Cell {
+func InitializeCells(numCells int, width float64) []*Cell {
 
 	CellArray := make([]*Cell, numCells)
 
@@ -59,15 +62,15 @@ func InitializeCells(numCells int, width, cellSpeed float64) []*Cell {
 
 		newCell.radius = 15.0 // in micrometres
 		newCell.height = 2.6  // in micrometres
-		newCell.speed = cellSpeed
+		// newCell.speed = cellSpeed
 		newCell.integrin = 50                                                     // in %
 		newCell.shapeFactor = 16.7 * math.Sqrt(0.5*newCell.radius*newCell.height) // In Eqn S3, c = 16.7 * sqrt(0.5 * r * h)
 		newCell.viscocity = 100                                                   // in Poise
 
 		// place cell randomly on ECM
 
-		newCell.position.x = rand.Float64() * width
-		newCell.position.y = rand.Float64() * width
+		newCell.position.x = width/4 + rand.Float64()*width/2
+		newCell.position.y = width/4 + rand.Float64()*width/2
 
 		// generate random direction for cell
 		newCell.projection.x = ((rand.Float64() - 0.5) * 2) // some random float in the interval [-1.0, 1.0)
@@ -75,9 +78,9 @@ func InitializeCells(numCells int, width, cellSpeed float64) []*Cell {
 
 		CellArray[i] = &newCell
 	}
-	fmt.Println("DELETE THIS LATER. (Initialization.go)")
-	CellArray[0].position.x = width / 2
-	CellArray[0].position.y = width / 2
+	// fmt.Println("DELETE THIS LATER. (Initialization.go)")
+	// CellArray[0].position.x = width / 2
+	// CellArray[0].position.y = width / 2
 
 	return CellArray
 }

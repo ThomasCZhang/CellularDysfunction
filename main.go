@@ -9,15 +9,15 @@ func main() {
 
 	// arguments: number of generations (int), number of cells (int), number of fibres (int)
 
-	numGens := 30
-	timeStep := 3.0
+	numGens := 100
+	timeStep := 1.0
 
-	numCells := 1
-	numFibres := 50
+	numCells := 5
+	numFibres := 7500
 	stiffness := 0.95 // a value between 0 and 1
-	cellSpeed := 20.0 // in micrometres/ hour
+	cellSpeed := 10.0 // in micrometres/ hour
 
-	width := 100.0 // the dimensions of a square ECM in micrometres
+	width := 500.0 // the dimensions of a square ECM in micrometres
 
 	fmt.Println("Commands read in successfully.")
 
