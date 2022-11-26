@@ -46,26 +46,12 @@ func (e *ECM) CopyECM() *ECM {
 
 	// For fibres
 	for i := 0; i < totalFibres; i++ {
-		var tempFibre Fibre
-		newECM.fibres[i] = &tempFibre
-		tempFibre.direction = e.fibres[i].direction
-		tempFibre.length = e.fibres[i].length
-		tempFibre.position = e.fibres[i].position
-		tempFibre.width = e.fibres[i].width
+		newECM.fibres[i] = e.fibres[i].CopyFibre()
 	}
 
 	// For Cells
 	for i := 0; i < totalCells; i++ {
-		var tempCell Cell
-		newECM.cells[i] = &tempCell
-		tempCell.radius = e.cells[i].radius
-		tempCell.height = e.cells[i].height
-		tempCell.speed = e.cells[i].speed
-		tempCell.integrin = e.cells[i].integrin
-		tempCell.shapeFactor = e.cells[i].shapeFactor
-		tempCell.viscocity = e.cells[i].viscocity
-		tempCell.position = e.cells[i].position
-		tempCell.projection = e.cells[i].projection
+		newECM.cells[i] = e.cells[i].CopyCell()
 	}
 
 	return &newECM

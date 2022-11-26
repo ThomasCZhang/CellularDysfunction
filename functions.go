@@ -58,9 +58,9 @@ func FindHomogenousLine(p1, p2 OrderedPair) (float64, float64, float64) {
 	return A, B, C
 }
 
-// FindYOnLine: Calculates the y value resulting from plugging x into "y = m*x + b"
+// EvaluateLineAtX: Calculates the y value resulting from plugging x into "y = m*x + b"
 // Input: x (float64) the x-value to use
 // m , b (float64) m and b in the line equation "y = mx+b"
-func FindYOnLine(x, m, b float64) float64 {
+func EvaluateLineAtX(x, m, b float64) float64 {
 	return (m*x + b)
 }

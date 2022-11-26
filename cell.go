@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"math/rand"
 )
 
@@ -44,7 +43,7 @@ func (cell *Cell) UpdateCell(fibres []*Fibre, threshold float64, time float64) {
 			indexMin = index
 		}
 	}
-	fmt.Println("Minimum Index is: ", indexMin)
+	// fmt.Println("Minimum Index is: ", indexMin)
 	cell.UpdateProjection(nearestFibres[indexMin].direction) // Update the projection vector
 	cell.UpdatePosition(time)
 }
@@ -140,4 +139,18 @@ func (currCell *Cell) UpdatePosition(time float64) {
 	// Calculte the new position
 	newPos.x = currCell.position.x + (drag.x)*time
 	newPos.y = currCell.position.y + (drag.y)*time
+}
+
+// CopyCell: Returns a pointer to a copy of a Cell object.
+func (c *Cell) CopyCell() *Cell {
+	var newCell Cell
+	newCell.radius = c.radius
+	newCell.height = c.height
+	newCell.speed = c.speed
+	newCell.integrin = c.integrin
+	newCell.shapeFactor = c.shapeFactor
+	newCell.viscocity = c.viscocity
+	newCell.position = c.position
+	newCell.projection = c.projection
+	return &newCell
 }
