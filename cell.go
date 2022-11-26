@@ -1,6 +1,9 @@
 package main
 
-import "math/rand"
+import (
+	"fmt"
+	"math/rand"
+)
 
 /*
 type Cell struct {
@@ -41,26 +44,27 @@ func (cell *Cell) UpdateCell(fibres []*Fibre, threshold float64, time float64) {
 			indexMin = index
 		}
 	}
+	fmt.Println("Minimum Index is: ", indexMin)
 	cell.UpdateProjection(nearestFibres[indexMin].direction) // Update the projection vector
 	cell.UpdatePosition(time)
 }
 
 // FindNearbyFibres: Finds all fibres who's centers are within some threshold distance
-// from teh center of a cell.
+// from the center of a cell.
 // Input: currCell (*Cell) Pointer to a cell object. Checking distance of fibre's center
 // to this cell's center.
 // threshold (float64): The max distance in which a fibre can be considered "nearby"
 // fibres ([]*Fibre) a slice of pointers to Fibre objects. These are the fibres that are in the ECM.
 func (currCell *Cell) FindNearbyFibres(threshold float64, fibres []*Fibre) []*Fibre {
-	var nearestFibres []*Fibre
+	var nearbyFibres []*Fibre
 
 	for i := 0; i < len(fibres); i++ {
 		if ComputeDistance(currCell.position, fibres[i].position) < threshold {
-			nearestFibres = append(nearestFibres, fibres[i])
+			nearbyFibres = append(nearbyFibres, fibres[i])
 		}
 	}
 
-	return nearestFibres
+	return nearbyFibres
 }
 
 // FindProjection finds the new projection vector caused by a fibre on the given cell

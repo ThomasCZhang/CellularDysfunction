@@ -9,15 +9,15 @@ func main() {
 
 	// arguments: number of generations (int), number of cells (int), number of fibres (int)
 
-	// numGens := 15
-	// timeStep := 3.0
+	numGens := 30
+	timeStep := 3.0
 
 	numCells := 1
-	numFibres := 15000
+	numFibres := 50
 	stiffness := 0.95 // a value between 0 and 1
 	cellSpeed := 20.0 // in micrometres/ hour
 
-	width := 1000.0 // the dimensions of a square ECM in micrometres
+	width := 100.0 // the dimensions of a square ECM in micrometres
 
 	fmt.Println("Commands read in successfully.")
 
@@ -25,9 +25,9 @@ func main() {
 
 	fmt.Println("ECM initialized. Beginning simulation.")
 
-	timeFrames := make([]*ECM, 1)
-	timeFrames[0] = initialECM
-	// timeFrames := SimulateCellMotility(initialECM, numGens, timeStep)
+	// timeFrames := make([]*ECM, 1)
+	// timeFrames[0] = initialECM
+	timeFrames := SimulateCellMotility(initialECM, numGens, timeStep)
 
 	fmt.Println("Simulation successful! Now drawing ECM.")
 

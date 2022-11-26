@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"math"
 	"math/rand"
 )
@@ -74,6 +75,10 @@ func InitializeCells(numCells int, width, cellSpeed float64) []*Cell {
 
 		CellArray[i] = &newCell
 	}
+	fmt.Println("DELETE THIS LATER. (Initialization.go)")
+	CellArray[0].position.x = width / 2
+	CellArray[0].position.y = width / 2
+
 	return CellArray
 }
 
