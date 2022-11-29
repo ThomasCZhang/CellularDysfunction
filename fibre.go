@@ -136,6 +136,7 @@ func (fibre *Fibre) FindNearestCell(cells []*Cell) *Cell {
 		newDistance := fibre.FindPerpendicularDistance(cell)
 		if newDistance < currentDistance {
 			nearestCell = cell
+			currentDistance = newDistance
 		}
 	}
 	return nearestCell

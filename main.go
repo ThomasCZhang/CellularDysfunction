@@ -3,21 +3,22 @@ package main
 import (
 	"fmt"
 	"gifhelper"
+	"time"
 )
 
 func main() {
 
 	// arguments: number of generations (int), number of cells (int), number of fibres (int)
 
-	numGens := 100
+	numGens := 200
 	timeStep := 1.0
 
 	numCells := 5
-	numFibres := 7500
+	numFibres := 15000
 	stiffness := 0.95 // a value between 0 and 1
 	cellSpeed := 10.0 // in micrometres/ hour
 
-	width := 500.0 // the dimensions of a square ECM in micrometres
+	width := 1000.0 // the dimensions of a square ECM in micrometres
 
 	fmt.Println("Commands read in successfully.")
 
@@ -25,9 +26,9 @@ func main() {
 
 	fmt.Println("ECM initialized. Beginning simulation.")
 
-	// timeFrames := make([]*ECM, 1)
-	// timeFrames[0] = initialECM
+	start := time.Now()
 	timeFrames := SimulateCellMotility(initialECM, numGens, timeStep)
+	fmt.Printf("Num Gens: %d, Num Fibres: %d, Num Cells: %d. Run Time: %s\n.", numGens, numFibres, numCells, time.Since(start).Truncate(time.Millisecond))
 
 	fmt.Println("Simulation successful! Now drawing ECM.")
 
