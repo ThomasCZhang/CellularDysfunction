@@ -69,8 +69,11 @@ func InitializeCells(numCells int, width float64) []*Cell {
 
 		// place cell randomly on ECM
 
-		newCell.position.x = width/4 + rand.Float64()*width/2
-		newCell.position.y = width/4 + rand.Float64()*width/2
+		// newCell.position.x = width/4 + rand.Float64()*width/2
+		// newCell.position.y = width/4 + rand.Float64()*width/2
+		n := 0.125
+		newCell.position.x = width*n + rand.Float64()*width*(1-2*n)
+		newCell.position.y = width*n + rand.Float64()*width*(1-2*n)
 
 		// generate random direction for cell
 		newCell.projection.x = ((rand.Float64() - 0.5) * 2) // some random float in the interval [-1.0, 1.0)
@@ -78,10 +81,6 @@ func InitializeCells(numCells int, width float64) []*Cell {
 
 		CellArray[i] = &newCell
 	}
-	// fmt.Println("DELETE THIS LATER. (Initialization.go)")
-	// CellArray[0].position.x = width / 2
-	// CellArray[0].position.y = width / 2
-
 	return CellArray
 }
 
