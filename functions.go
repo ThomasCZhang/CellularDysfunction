@@ -1,127 +1,122 @@
 package main
 
 import (
-	"fmt"
 	"math"
-	"math/random"
 )
 
 // SimulateCellMotility takes a ECM object of cells and fibres and updates it over certain number of generations with a specified timestep.
 // Input: a initialECM, numGens and a timestep
 // Output: A slice of numGens+1 ECM objects that model cell and fibre movement.
-func SimulateCellMotility(initialECM *ECM, numGens int, time float64) []*ECM {
+func SimulateCellMotility(initialECM *ECM, numGens int, time float64) ([]*ECM, [][]float64) {
 	// range over some number of generations
 	timeFrames := make([]*ECM, numGens+1)
 	timeFrames[0] = initialECM
+
+	// make array to store cell identities and positions as they are updated
+	positionArray := InitializePositionArray(initialECM, numGens)
+
+	var timePoint float64
 	for gen := 1; gen <= numGens; gen++ {
-		timeFrames[gen] = UpdateECM(timeFrames[gen-1], time)
-	}
-	return timeFrames
-}
 
-// UpdateECM takes a current ECM object and updates it by the given time step.
-// Input: currentECM and a time step
-// Output: A new ECM object with  updated cell and fibre positions
-func UpdateECM(currentECM *ECM, time float64) *ECM {
-	// range over all cells on ECM
-
-	newECM := CopyECM(currentECM) // makes a deep copy of the ECM
-
-	for _, fibre := range newECM.fibres {
-		nearestCell := fibre.FindNearestCell(newECM.cells) // returns a nearest cell
-		fibre.UpdateFibre(nearestCell)
+		timePoint, timeFrames[gen], positionArray = timeFrames[gen-1].UpdateECM(time, timePoint, positionArray)
 	}
 
-	for _, cell := range newECM.cells {
-		cell.UpdateCell()
-	}
-	return newECM
+	return timeFrames, positionArray
 }
 
-// CopyECM creates a deep copy of the given ECM
-func CopyECM(currentECM *ECM) *ECM {
-	return
+// Distance: Takes two position ordered pairs and it returns the distance between these two points in 2-D space.
+func ComputeDistance(p1, p2 OrderedPair) float64 {
+	// this is the distance formula from days of precalculus long ago ...
+	deltaX := p1.x - p2.x
+	deltaY := p1.y - p2.y
+	return math.Sqrt(deltaX*deltaX + deltaY*deltaY)
 }
 
-// UpdateCell finds the new direction of a given cell based on the fibre that causes the least change in direction
-// Input: cell object and a list of updated fibres
-// Output: cell with updated projection and position
-func (cell *Cell) UpdateCell(fibres []*fibre, threshold float64) {
-
-	// range over all fibres and compute projection vectors caused by all fibres on the cell
-	// to make this easier, we can only pick fibres that are within a certain critical distance to the cell
-
-	NearestFibres := FindNearestFibres(cell, threshold) // returns a slice of nearest fibres within a certain threshold distance
-	var changeMagnitude float64
-	for index, fibre := NearestFibres {
-		newProjection := FindProjection(cell, fibre)
-		delta_magnitude := FindMagnitudeChange(newProjection, cell.projection)
-		if index == 0 { // set default magnitude of change to first one
-			changeMagnitude = delta_magnitude
-		}
-		if delta_magnitude < changeMagnitude { // find the minimum magnitude of change
-			changeMagnitude = delta_magnitude
-		}
-		cell.UpdateProjection(newProjection) // Update the projection vector
-	}
-
-	cell.UpdatePosition()
+// Magnitude: Calculate the magnitude of an ordered pair.
+// Formula for magnitude = (x^2+y^2)^(1/2)
+func (p1 *OrderedPair) Magnitude() float64 {
+	var mag float64
+	mag = math.Sqrt((p1.x * p1.x) + (p1.y * p1.y))
+	return mag
 }
 
-
-
-// FindProjection finds the new projection vector caused by a fibre on the given cell
-// Input: Current cell and fibre
-// Output: The new projection vector of the cell caused by the fibre based on the direction of the fibre and random noise.
-func FindProjection(cell *Cell, fibre *Fibre) OrderedPair {
+// Normalize: Normalizes an ordered pair so that its magnitude = 1.
+// Input: p1 (*OrderedPair) a pointer to the OrderedPair to be normalized.
+func (p1 *OrderedPair) Normalize() {
+	magnitude := p1.Magnitude()
+	p1.x /= magnitude
+	p1.y /= magnitude
 }
 
-
-// UpdateProjection updates the projection vector of the cell using a new projection vector
-func (cell *Cell) UpdateProjection(newProjection OrderedPair) {
-	cell.ComputeDragForce() // computes F = speed x shape factor (c) x fluid viscosity (n) x projection vector + noise
+// FindLine: Find the equation of the line between two Ordered Pairs.
+// Calculates the equation of the line in the form "y = mx+b"
+// Input:
+// p1, p2 (Ordered Pair) The two ordered pairs that the line should pass through
+// Output:
+// m, b (float64) the m and b values of the equation for the line "y = mx + b"
+func FindLine(p1, p2 OrderedPair) (float64, float64) {
+	m := (p2.y - p1.y) / (p2.x - p1.x)
+	b := p1.y - m*p1.x
+	return m, b
 }
 
-func ComputeDragForce() {
-	ComputeNoise()
+// FindLine: Find the equation of the line between two points.
+// Calculates the equation of the line in the form "Ax + By + C = 0" and returns A B and C.
+// Input:
+// p1, p2 (Ordered Pair) The two ordered pairs that the line should pass through
+// Output:
+// A, B, C (float64) the values of A, B and C in the homogenous line equation Ax+By+C = 0
+func FindHomogenousLine(p1, p2 OrderedPair) (float64, float64, float64) {
+	A := p2.y - p1.y
+	B := p1.x - p2.x
+	C := p2.x*p1.y - p1.x*p2.y
+	return A, B, C
 }
 
-func ComputeNoise() {
-
+// EvaluateLineAtX: Calculates the y value resulting from plugging x into "y = m*x + b"
+// Input: x (float64) the x-value to use
+// m , b (float64) m and b in the line equation "y = mx+b"
+func EvaluateLineAtX(x, m, b float64) float64 {
+	return (m*x + b)
 }
 
-func FindNearestFibre() {
-
-}
-// UpdatePosition uses the updated projection vector to change the position of the cell.
-func (cell *Cell) UpdatePosition() {
-
-}
-
-// UpdateFibre calculates the new angle of rotation and changes the position of the fibre
-// Input: Nearest cell
-func (fibre *Fibre) UpdateFibre(cell *Cell) {
-
-	// phi (angle of rotation) = theta (angle of cell from pivot) - arcsin[(1 - 0.1*integrins*(1-stiffness)*perpendicular distance D) / hypotenuse]
-
-	d := fibre.FindHypotenuse(cell) // find the hypotenuse of the cell to the pivot point of the fibre
-	D := fibre.FindPerpendicularDistance(cell) // find the perpendicular distance of the cell to the fibre
-	theta := ComputeTheta(d,D) // theta = arcsin(d / D)
-
-	phi := ComputePhi(theta,d,D,cell) // compute angle of rotation
-	fibre.UpdateDirection(phi) // updates direction vector of fibre using phi
-
+// ProjectVector: Returns the projection of one vector onto another.
+// Input:
+// v1 (OrderedPair): The vector be projected
+// v2 (OrderedPair): The vector being projected onto.
+// Output: (OrderedPair) The resulting projection vector.
+func ProjectVector(v1, v2 OrderedPair) OrderedPair {
+	scalingFactor := DotProduct2D(v1, v2) / (v2.Magnitude() * v2.Magnitude())
+	newVector := MultiplyVectorByConstant2D(v2, scalingFactor)
+	return newVector
 }
 
-
-func (fibre *Fibre) UpdateDirection() {
-
+// DotProduct2D: Returns the dot product between two vectors in R2.
+// Input: v1, v2 (OrderedPair) the vectors to be dotted.
+// Output: (float64) The dot product of v1 and v2.
+func DotProduct2D(v1, v2 OrderedPair) float64 {
+	return v1.x*v2.x + v1.y*v2.y
 }
 
-func FindHypotenuse() {
-
+// MultiplyVectorByConstant2D: Multiplies a vector by some constant value.
+// Input:
+// v1 (OrderedPair): The vector to be multiplied
+// constant (float64): The consant to multiply the vector with
+// Output: (OrderedPair): The new vector as an OrderedPair object.
+func MultiplyVectorByConstant2D(v1 OrderedPair, constant float64) OrderedPair {
+	newVector := v1
+	newVector.x *= constant
+	newVector.y *= constant
+	return newVector
 }
 
-func FindPerpendicularDistance() {
-
+// CalculateAngleBetweenVectors2D: Finds the angle between two vectors.
+// Input:
+// v1, v2 (OrderedPair): The two vectors being compared.
+// Output:
+// (float64) The angle between v1 and v2 in radians.
+func CalculateAngleBetweenVectors2D(v1, v2 OrderedPair) float64 {
+	cosTheta := DotProduct2D(v1, v2) / (v1.Magnitude() * v2.Magnitude())
+	theta := math.Acos(cosTheta)
+	return theta
 }

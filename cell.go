@@ -166,6 +166,7 @@ func (currCell *Cell) ComputeDragForce() OrderedPair {
 // CopyCell: Returns a pointer to a copy of a Cell object.
 func (c *Cell) CopyCell() *Cell {
 	var newCell Cell
+	newCell.label = c.label
 	newCell.radius = c.radius
 	newCell.height = c.height
 	// newCell.speed = c.speed
