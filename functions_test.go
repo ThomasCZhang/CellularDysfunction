@@ -2,180 +2,613 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
+	//"io/ioutil"
 	"math"
-	"os"
-	"strconv"
-	"strings"
+	//"os"
+	//"strconv"
+	//"strings"
 	"testing"
 )
 
-func testFindPerpendicularDistance(t *testing.T) {
+func TestDistance(t *testing.T) {
+
 	type test struct {
-		cell   Cell
-		fibre  Fibre
+		point1, point2 OrderedPair
+		answer         float64
+	}
+
+	tests := make([]test, 9)
+	tests[0].point1.x = 0
+	tests[0].point1.y = 0
+	tests[0].point2.x = 0
+	tests[0].point2.y = 0
+	tests[0].answer = 0.0
+
+	tests[1].point1.x = 0
+	tests[1].point1.y = 0
+	tests[1].point2.x = 3
+	tests[1].point2.y = 4
+	tests[1].answer = 5.0
+
+	tests[2].point1.x = 0
+	tests[2].point1.y = 0
+	tests[2].point2.x = -3
+	tests[2].point2.y = -4
+	tests[2].answer = 5
+
+	tests[3].point1.x = 0
+	tests[3].point1.y = 0
+	tests[3].point2.x = 30000000
+	tests[3].point2.y = 40000000
+	tests[3].answer = 50000000
+
+	tests[4].point1.x = 0
+	tests[4].point1.y = 0
+	tests[4].point2.x = -30000000
+	tests[4].point2.y = -40000000
+	tests[4].answer = 50000000
+
+	tests[5].point1.x = 50000000
+	tests[5].point1.y = 50000000
+	tests[5].point2.x = 50000000
+	tests[5].point2.y = 50000000
+	tests[5].answer = 0.0
+
+	tests[6].point1.x = 6
+	tests[6].point1.y = 8
+	tests[6].point2.x = -6
+	tests[6].point2.y = -8
+	tests[6].answer = 20.0
+
+	tests[7].point1.x = 50000000
+	tests[7].point1.y = 0
+	tests[7].point2.x = -50000000
+	tests[7].point2.y = 0
+	tests[7].answer = 100000000
+
+	tests[8].point1.x = 0
+	tests[8].point1.y = -50000000
+	tests[8].point2.x = 0
+	tests[8].point2.y = 50000000
+	tests[8].answer = 100000000
+
+	for i, test := range tests {
+		outcome := ComputeDistance(test.point1, test.point2)
+
+		if outcome != test.answer {
+			t.Errorf("Error! For input test dataset %d, your code gives %f, and the correct distance is %f", i, outcome, test.answer)
+		} else {
+			fmt.Println("Correct! When the points are ", test.point1.x, test.point1.y, "and", test.point2.x, test.point2.y, "the distance is", test.answer)
+		}
+	}
+}
+
+func TestMagnitude(t *testing.T) {
+	type test struct {
+		point  OrderedPair
 		answer float64
 	}
 
-	val, err := os.Getwd()
-	if err != nil {
-		panic("Unable to find working directory.")
-	}
-	inputDirectory := val + "\\tests\\Input\\PerpendicularDistance\\"
-	inputFiles := ReadFilesFromDirectory(inputDirectory)
+	tests := make([]test, 8)
 
-	outputDirectory := val + "\\tests\\Output\\PerpendicularDistance\\"
-	outputFiles := ReadFilesFromDirectory(outputDirectory)
+	tests[0].point.x = 0
+	tests[0].point.y = 0
+	tests[0].answer = 0
 
-	if len(inputFiles) != len(outputFiles) {
-		panic("Number of test inputs does not equal number of test outputs.")
-	}
+	tests[1].point.x = -3
+	tests[1].point.y = -4
+	tests[1].answer = 5
 
-	trials := make([]test, len(inputFiles))
-	for i := 0; i < len(inputFiles); i++ {
-		ordPairs := ReadOrderedPairsFromDirectory(inputDirectory, inputFiles[i])
-		trials[i].cell.position = ordPairs[0]
-		trials[i].fibre.position = ordPairs[1]
-		trials[i].fibre.pivot = ordPairs[2]
-		answers := ReadFloatsFromDirectory(outputDirectory, outputFiles[i])
-		trials[i].answer = answers[0][0]
-	}
+	tests[2].point.x = 3
+	tests[2].point.y = 4
+	tests[2].answer = 5
 
-	for _, trial := range trials {
-		solution := trial.fibre.FindPerpendicularDistance(&trial.cell)
-		if RoundFloat(solution, 3) != RoundFloat(trial.answer, 3) {
-			t.Errorf("Error: When the input is:\n"+
-				"fibre pivot = (%.3e, %.3e)\n"+
-				"fibre center = (%.3e, %.3e)\n"+
-				"cell center = (%.3e, %.3e)\n "+
-				"The distance should be %.3e, however the function returned %.3e.",
-				trial.fibre.pivot.x, trial.fibre.pivot.y,
-				trial.fibre.position.x, trial.fibre.position.y,
-				trial.cell.position.x, trial.cell.position.y,
-				trial.answer, solution)
+	tests[3].point.x = 0
+	tests[3].point.y = 50000000
+	tests[3].answer = 50000000
+
+	tests[4].point.x = -50000000
+	tests[4].point.y = 0
+	tests[4].answer = 50000000
+
+	tests[5].point.x = 0
+	tests[5].point.y = 0
+	tests[5].answer = 0
+
+	tests[6].point.x = 0
+	tests[6].point.y = 0
+	tests[6].answer = 0
+
+	tests[7].point.x = 0
+	tests[7].point.y = 0
+	tests[7].answer = 0
+
+	for i, test := range tests {
+		outcome := test.point.Magnitude()
+
+		if outcome != test.answer {
+			t.Errorf("Error! For input test dataset %d, your code gives %f, and the correct magnitude is %f", i, outcome, test.answer)
 		} else {
-			fmt.Printf("Correct: When the input is:\n"+
-				"fibre pivot = (%.3e, %.3e)\n"+
-				"fibre center = (%.3e, %.3e)\n"+
-				"cell center = (%.3e, %.3e)\n "+
-				"The distance is %.3e.",
-				trial.fibre.pivot.x, trial.fibre.pivot.y,
-				trial.fibre.position.x, trial.fibre.position.y,
-				trial.cell.position.x, trial.cell.position.y,
-				trial.answer)
+			fmt.Println("Correct! When the point is", test.point.x, test.point.y, "the richness is", test.answer)
 		}
 	}
-
 }
 
-func ReadOrderedPairsFromDirectory(directory string, inputFile os.DirEntry) []OrderedPair {
-	floatSlice := ReadFloatsFromDirectory(directory, inputFile)
-	ordPair := make([]OrderedPair, len(floatSlice))
-	for i := range ordPair {
-		ordPair[i].x = floatSlice[i][0]
-		ordPair[i].y = floatSlice[i][1]
-	}
-	return ordPair
-}
+func TestFindLine(t *testing.T) {
 
-// Reads a text file containing numbers separated by spaces and returns the numbers in a 2 dimensional slice of ints.
-// Input:
-// directory (string) The location of the text file.
-// inputFile (os.DirEntry) information on the file to be read.
-// Output:
-// ([][]int) A 2d slice of float64.
-func ReadIntsFromFile(directory string, inputFile os.DirEntry) [][]int {
-	fileName := inputFile.Name()
-
-	//now, read in the input file
-	fileContents, err := ioutil.ReadFile(directory + fileName)
-	if err != nil {
-		panic(err)
+	type test struct {
+		point1, point2   OrderedPair
+		answer1, answer2 float64
 	}
 
-	//first, read lines and split along blank space
-	inputLines := strings.Split(strings.TrimSpace(strings.Replace(string(fileContents), "\r\n", "\n", -1)), "\n")
+	tests := make([]test, 9)
+	tests[0].point1.x = 0
+	tests[0].point1.y = 0
+	tests[0].point2.x = 4
+	tests[0].point2.y = 0
+	tests[0].answer1 = 0.0
+	tests[0].answer2 = 0.0
 
-	var intSlice [][]int
-	for i, line := range inputLines {
-		lineValues := strings.Split(line, " ")
-		intSlice[i] = make([]int, len(lineValues))
-		for j, value := range lineValues {
-			intSlice[i][j], err = strconv.Atoi(value)
-			if err != nil {
-				fmt.Println("Error in ReadIntsFromFile!")
-				fmt.Println(err)
-				panic("Program Terminated!")
-			}
+	tests[1].point1.x = 0
+	tests[1].point1.y = 5
+	tests[1].point2.x = -4
+	tests[1].point2.y = 5
+	tests[1].answer1 = 0.0
+	tests[1].answer2 = 5.0
+
+	tests[2].point1.x = 2
+	tests[2].point1.y = 0
+	tests[2].point2.x = 0
+	tests[2].point2.y = -4
+	tests[2].answer1 = -2.0
+	tests[2].answer2 = -4.0
+
+	tests[3].point1.x = 0
+	tests[3].point1.y = 0
+	tests[3].point2.x = 20000000
+	tests[3].point2.y = 40000000
+	tests[3].answer1 = 2.0
+	tests[3].answer2 = 0.0
+
+	tests[4].point1.x = 0
+	tests[4].point1.y = 0
+	tests[4].point2.x = -20000000
+	tests[4].point2.y = -40000000
+	tests[4].answer1 = 20000000
+	tests[4].answer2 = 0
+
+	tests[5].point1.x = 50000000
+	tests[5].point1.y = 50000001
+	tests[5].point2.x = 50000001
+	tests[5].point2.y = 50000000
+	tests[5].answer1 = -1.0
+	tests[5].answer2 = 0.0
+
+	tests[6].point1.x = 6
+	tests[6].point1.y = 8
+	tests[6].point2.x = -6
+	tests[6].point2.y = -7
+	tests[6].answer1 = 1.25
+	tests[6].answer2 = 0
+
+	tests[7].point1.x = 50000000
+	tests[7].point1.y = 0
+	tests[7].point2.x = -50000000
+	tests[7].point2.y = 0
+	tests[7].answer1 = 0
+	tests[7].answer2 = 0
+
+	tests[8].point1.x = 0
+	tests[8].point1.y = -50000000
+	tests[8].point2.x = 0
+	tests[8].point2.y = 50000000
+	tests[8].answer1 = math.Inf(1)
+	tests[8].answer2 = math.NaN()
+
+	for i, test := range tests {
+		outcome1, outcome2 := FindLine(test.point1, test.point2)
+
+		if outcome1 != test.answer1 && outcome2 != test.answer2 {
+			t.Errorf("Error! For input test dataset %d, your code gives (%f, %f), and the correct m and b is (%f, %f).", i, outcome1, outcome2, test.answer1, test.answer2)
+		} else {
+			fmt.Println("Correct! When the points are", test.point1.x, test.point1.y, "and", test.point2.x, test.point2.y, "the line is", test.answer1, test.answer2)
 		}
 	}
-	return intSlice
 }
 
-// Reads a text file containing numbers separated by spaces and returns the numbers in a 2 dimensional slice of floats.
-// Input:
-// directory (string) The location of the text file.
-// inputFile (os.DirEntry) information on the file to be read.
-// Output:
-// ([][]float64) A 2d slice of float64.
-func ReadFloatsFromDirectory(directory string, inputFile os.DirEntry) [][]float64 {
-	fileName := inputFile.Name()
+func TestFindHomogeneousLine(t *testing.T) {
 
-	//now, read in the input file
-	fileContents, err := ioutil.ReadFile(directory + fileName)
-	if err != nil {
-		panic(err)
+	type test struct {
+		point1, point2            OrderedPair
+		answer1, answer2, answer3 float64
 	}
 
-	//first, read lines and split along blank space
-	inputLines := strings.Split(strings.TrimSpace(strings.Replace(string(fileContents), "\r\n", "\n", -1)), "\n")
+	tests := make([]test, 9)
+	tests[0].point1.x = 0
+	tests[0].point1.y = 0
+	tests[0].point2.x = 4
+	tests[0].point2.y = 0
+	tests[0].answer1 = 0.0
+	tests[0].answer2 = 0.0
+	tests[0].answer3 = 0.0
 
-	var floatSlice [][]float64
-	for i, line := range inputLines {
-		lineValues := strings.Split(line, " ")
-		floatSlice[i] = make([]float64, len(lineValues))
-		for j, value := range lineValues {
-			floatSlice[i][j], err = strconv.ParseFloat(value, 64)
-			if err != nil {
-				fmt.Println("Error in ReadIntsFromFile!")
-				fmt.Println(err)
-				panic("Program Terminated!")
-			}
+	tests[1].point1.x = 0
+	tests[1].point1.y = 5
+	tests[1].point2.x = -4
+	tests[1].point2.y = 5
+	tests[1].answer1 = 0.0
+	tests[1].answer2 = 5.0
+	tests[1].answer3 = 0.0
+
+	tests[2].point1.x = 2
+	tests[2].point1.y = 0
+	tests[2].point2.x = 0
+	tests[2].point2.y = -4
+	tests[2].answer1 = -4.0
+	tests[2].answer2 = 2.0
+	tests[2].answer3 = 8.0
+
+	tests[3].point1.x = 0
+	tests[3].point1.y = 0
+	tests[3].point2.x = 20000000
+	tests[3].point2.y = 40000000
+	tests[3].answer1 = 2.0
+	tests[3].answer2 = 0.0
+	tests[3].answer3 = 0.0
+
+	tests[4].point1.x = 0
+	tests[4].point1.y = 0
+	tests[4].point2.x = -20000000
+	tests[4].point2.y = -40000000
+	tests[4].answer1 = 20000000
+	tests[4].answer2 = 0
+	tests[4].answer3 = 0.0
+
+	tests[5].point1.x = 50000000
+	tests[5].point1.y = 50000001
+	tests[5].point2.x = 50000001
+	tests[5].point2.y = 50000000
+	tests[5].answer1 = -1.0
+	tests[5].answer2 = 0.0
+	tests[5].answer3 = 0.0
+
+	tests[6].point1.x = 6
+	tests[6].point1.y = 8
+	tests[6].point2.x = -6
+	tests[6].point2.y = -7
+	tests[6].answer1 = -15
+	tests[6].answer2 = 12
+	tests[6].answer3 = -6.0
+
+	tests[7].point1.x = 50000000
+	tests[7].point1.y = 0
+	tests[7].point2.x = -50000000
+	tests[7].point2.y = 0
+	tests[7].answer1 = 0
+	tests[7].answer2 = 0
+	tests[7].answer3 = 0.0
+
+	tests[8].point1.x = 0
+	tests[8].point1.y = -50000000
+	tests[8].point2.x = 0
+	tests[8].point2.y = 50000000
+	tests[8].answer1 = math.Inf(1)
+	tests[8].answer2 = math.NaN()
+	tests[8].answer3 = 0.0
+
+	for i, test := range tests {
+		outcome1, outcome2, outcome3 := FindHomogenousLine(test.point1, test.point2)
+
+		if outcome1 != test.answer1 && outcome2 != test.answer2 && outcome3 != test.answer3 {
+			t.Errorf("Error! For input test dataset %d, your code gives (%f, %f, %f), and the correct A, B, and C is (%f, %f, %f).", i, outcome1, outcome2, outcome3, test.answer1, test.answer2, test.answer3)
+		} else {
+			fmt.Println("Correct! When the points are", test.point1.x, test.point1.y, "and", test.point2.x, test.point2.y, "the A, B, C values are", test.answer1, test.answer2, test.answer3)
 		}
 	}
-	return floatSlice
 }
 
-func ReadFilesFromDirectory(directory string) []os.DirEntry {
-	dirContents, err := os.ReadDir(directory)
-	if err != nil {
-		panic("Error reading directory: " + directory)
+func TestProjectVector(t *testing.T) {
+
+	type test struct {
+		point1, point2   OrderedPair
+		answer1, answer2 float64
 	}
 
-	return dirContents
+	tests := make([]test, 9)
+	tests[0].point1.x = 0
+	tests[0].point1.y = 0
+	tests[0].point2.x = 4
+	tests[0].point2.y = 0
+	tests[0].answer1 = 0.0
+	tests[0].answer2 = 0.0
+
+	tests[1].point1.x = 0
+	tests[1].point1.y = 5
+	tests[1].point2.x = -4
+	tests[1].point2.y = 5
+	tests[1].answer1 = -2.439024
+	tests[1].answer2 = 3.048780
+
+	tests[2].point1.x = 2
+	tests[2].point1.y = 0
+	tests[2].point2.x = 0
+	tests[2].point2.y = -4
+	tests[2].answer1 = 0
+	tests[2].answer2 = 0
+
+	tests[3].point1.x = 0
+	tests[3].point1.y = 0
+	tests[3].point2.x = 20000000
+	tests[3].point2.y = 40000000
+	tests[3].answer1 = 2.0
+	tests[3].answer2 = 0.0
+
+	tests[4].point1.x = 0
+	tests[4].point1.y = 0
+	tests[4].point2.x = -20000000
+	tests[4].point2.y = -40000000
+	tests[4].answer1 = 20000000
+	tests[4].answer2 = 0
+
+	tests[5].point1.x = 50000000
+	tests[5].point1.y = 50000001
+	tests[5].point2.x = 50000001
+	tests[5].point2.y = 50000000
+	tests[5].answer1 = 50000001
+	tests[5].answer2 = 50000000
+
+	tests[6].point1.x = 6
+	tests[6].point1.y = 8
+	tests[6].point2.x = -6
+	tests[6].point2.y = -7
+	tests[6].answer1 = 6.494118
+	tests[6].answer2 = 7.576471
+
+	tests[7].point1.x = 50000000
+	tests[7].point1.y = 0
+	tests[7].point2.x = -50000000
+	tests[7].point2.y = 0
+	tests[7].answer1 = 0
+	tests[7].answer2 = 0
+
+	tests[8].point1.x = 0
+	tests[8].point1.y = -50000000
+	tests[8].point2.x = 0
+	tests[8].point2.y = 50000000
+	tests[8].answer1 = 0
+	tests[8].answer2 = -50000000
+
+	for i, test := range tests {
+		outcome := ProjectVector(test.point1, test.point2)
+		outcome1 := outcome.x
+		outcome2 := outcome.y
+
+		if math.Round(outcome1/6)*6 != math.Round(test.answer1/6)*6 && math.Round(outcome2/6)*6 != math.Round(test.answer2/6)*6 {
+			t.Errorf("Error! For input test dataset %d, your code gives (%f, %f), and the correct vector is (%f, %f).", i, outcome1, outcome2, test.answer1, test.answer2)
+		} else {
+			fmt.Println("Correct! When the points are", test.point1.x, test.point1.y, "and", test.point2.x, test.point2.y, "the vector is", test.answer1, test.answer2)
+		}
+	}
 }
 
-func AssertEqualAndNonzero(length0, length1 int) {
-	if length0 == 0 {
-		panic("No files present in input directory.")
+func TestDotProduct2D(t *testing.T) {
+
+	type test struct {
+		point1, point2 OrderedPair
+		answer         float64
 	}
-	if length1 == 0 {
-		panic("No files present in output directory.")
-	}
-	if length0 != length1 {
-		panic("Number of files in directories doesn't match.")
+
+	tests := make([]test, 9)
+	tests[0].point1.x = 0
+	tests[0].point1.y = 0
+	tests[0].point2.x = 4
+	tests[0].point2.y = 0
+	tests[0].answer = 0.0
+
+	tests[1].point1.x = 0
+	tests[1].point1.y = 5
+	tests[1].point2.x = -4
+	tests[1].point2.y = 5
+	tests[1].answer = 25
+
+	tests[2].point1.x = 2
+	tests[2].point1.y = 0
+	tests[2].point2.x = 0
+	tests[2].point2.y = -4
+	tests[2].answer = 0
+
+	tests[3].point1.x = 0
+	tests[3].point1.y = 0
+	tests[3].point2.x = 20000000
+	tests[3].point2.y = 40000000
+	tests[3].answer = 2.0
+
+	tests[4].point1.x = 0
+	tests[4].point1.y = 0
+	tests[4].point2.x = -20000000
+	tests[4].point2.y = -40000000
+	tests[4].answer = 0
+
+	tests[5].point1.x = 50000000
+	tests[5].point1.y = 50000001
+	tests[5].point2.x = 50000001
+	tests[5].point2.y = 50000000
+	tests[5].answer = 5000000100000000
+
+	tests[6].point1.x = 6
+	tests[6].point1.y = 8
+	tests[6].point2.x = -6
+	tests[6].point2.y = -7
+	tests[6].answer = -92
+
+	tests[7].point1.x = 50000000
+	tests[7].point1.y = 0
+	tests[7].point2.x = -50000000
+	tests[7].point2.y = 0
+	tests[7].answer = -2500000000000000
+
+	tests[8].point1.x = 0
+	tests[8].point1.y = -50000000
+	tests[8].point2.x = 0
+	tests[8].point2.y = 50000000
+	tests[8].answer = -2500000000000000
+
+	for i, test := range tests {
+		outcome := DotProduct2D(test.point1, test.point2)
+
+		if math.Round(outcome/6)*6 != math.Round(test.answer/6)*6 {
+			t.Errorf("Error! For input test dataset %d, your code gives %f, and the correct dot product is %f.", i, outcome, test.answer)
+		} else {
+			fmt.Println("Correct! When the points are", test.point1.x, test.point1.y, "and", test.point2.x, test.point2.y, "the dot product is", test.answer)
+		}
 	}
 }
 
-func RoundFloat(val float64, precision uint) float64 {
-	ratio := math.Pow(10, float64(precision))
-	return math.Round(val*ratio) / ratio
+func TestMultiplyVectorByConstant2D(t *testing.T) {
+
+	type test struct {
+		point            OrderedPair
+		constant         float64
+		answer1, answer2 float64
+	}
+
+	tests := make([]test, 9)
+	tests[0].point.x = 0
+	tests[0].point.y = 0
+	tests[0].constant = 5
+	tests[0].answer1 = 0.0
+	tests[0].answer2 = 0.0
+
+	tests[1].point.x = 0
+	tests[1].point.y = 5
+	tests[1].constant = -5
+	tests[1].answer1 = -2.439024
+	tests[1].answer2 = 3.048780
+
+	tests[2].point.x = 2
+	tests[2].point.y = 0
+	tests[2].constant = 3
+	tests[2].answer1 = 0
+	tests[2].answer2 = 0
+
+	tests[3].point.x = 20000000
+	tests[3].point.y = 40000000
+	tests[3].constant = 4
+	tests[3].answer1 = 80000000
+	tests[3].answer2 = 160000000
+
+	tests[4].point.x = -20000000
+	tests[4].point.y = -40000000
+	tests[4].constant = -5
+	tests[4].answer1 = 100000000
+	tests[4].answer2 = 200000000
+
+	tests[5].point.x = 50000000
+	tests[5].point.y = 50000001
+	tests[5].constant = 0
+	tests[5].answer1 = 0
+	tests[5].answer2 = 0
+
+	tests[6].point.x = 6
+	tests[6].point.y = 8
+	tests[6].constant = -6
+	tests[6].answer1 = -36
+	tests[6].answer2 = -48
+
+	tests[7].point.x = -50000000
+	tests[7].point.y = 0
+	tests[7].constant = -1
+	tests[7].answer1 = 50000000
+	tests[7].answer2 = 0
+
+	tests[8].point.x = 0
+	tests[8].point.y = -50000000
+	tests[8].constant = 100
+	tests[8].answer1 = 0
+	tests[8].answer2 = -5000000000
+
+	for i, test := range tests {
+		outcome := MultiplyVectorByConstant2D(test.point, test.constant)
+		outcome1 := outcome.x
+		outcome2 := outcome.y
+
+		if math.Round(outcome1/6)*6 != math.Round(test.answer1/6)*6 && math.Round(outcome2/6)*6 != math.Round(test.answer2/6)*6 {
+			t.Errorf("Error! For input test dataset %d, your code gives (%f, %f), and the correct vector is (%f, %f).", i, outcome1, outcome2, test.answer1, test.answer2)
+		} else {
+			fmt.Println("Correct! When the points is", test.point.x, test.point.y, "and the constant is", test.constant, "the vector is", test.answer1, test.answer2)
+		}
+	}
 }
 
-func StringToFloat(str string) float64 {
-	val, err := strconv.ParseFloat(str, 64)
-	if err != nil {
-		panic("Error in StringToFloat, unable to parse " + str)
+func TestCalculateAngleBetweenVectors2D(t *testing.T) {
+
+	type test struct {
+		point1, point2 OrderedPair
+		answer         float64
 	}
-	return val
+
+	tests := make([]test, 9)
+	tests[0].point1.x = 1
+	tests[0].point1.y = 1
+	tests[0].point2.x = -1
+	tests[0].point2.y = 1
+	tests[0].answer = 1.570796
+
+	tests[1].point1.x = 0
+	tests[1].point1.y = 5
+	tests[1].point2.x = -4
+	tests[1].point2.y = 5
+	tests[1].answer = 0.674741
+
+	tests[2].point1.x = 2
+	tests[2].point1.y = 0
+	tests[2].point2.x = 0
+	tests[2].point2.y = -4
+	tests[2].answer = 0
+
+	tests[3].point1.x = 30000000
+	tests[3].point1.y = 40000000
+	tests[3].point2.x = 30000000
+	tests[3].point2.y = 40000000
+	tests[3].answer = 2.0
+
+	tests[4].point1.x = -12
+	tests[4].point1.y = -16
+	tests[4].point2.x = -30
+	tests[4].point2.y = -40
+	tests[4].answer = 0
+
+	tests[5].point1.x = -5
+	tests[5].point1.y = 10
+	tests[5].point2.x = -5
+	tests[5].point2.y = -10
+	tests[5].answer = 2.214297
+
+	tests[6].point1.x = 6
+	tests[6].point1.y = 8
+	tests[6].point2.x = -6
+	tests[6].point2.y = -7
+	tests[6].answer = 3.076467
+
+	tests[7].point1.x = 50000000
+	tests[7].point1.y = 0
+	tests[7].point2.x = -50000000
+	tests[7].point2.y = 0
+	tests[7].answer = 3.141593
+
+	tests[8].point1.x = 30000000
+	tests[8].point1.y = 40000000
+	tests[8].point2.x = 160000000
+	tests[8].point2.y = 120000000
+	tests[8].answer = 0.283794
+
+	for i, test := range tests {
+		outcome := CalculateAngleBetweenVectors2D(test.point1, test.point2)
+
+		if math.Round(outcome/6)*6 != math.Round(test.answer/6)*6 {
+			t.Errorf("Error! For input test dataset %d, your code gives %f, and the correct angle is %f.", i, outcome, test.answer)
+		} else {
+			fmt.Println("Correct! When the points are", test.point1.x, test.point1.y, "and", test.point2.x, test.point2.y, "the angle is", test.answer)
+		}
+	}
 }
