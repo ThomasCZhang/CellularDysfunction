@@ -23,7 +23,10 @@ func RunSimulation(numGens, numCells, numFibres int, timeStep, width, cellSpeed,
 
 	timeFrames, positionArray := SimulateCellMotility(initialECM, numGens, timeStep)
 
-	fmt.Printf("Num Gens: %d, Num Fibres: %d, Num Cells: %d. Run Time: %s\n.", numGens, numFibres, numCells, time.Since(start).Truncate(time.Millisecond))
+	fmt.Printf("Num Gens: %d, Num Fibres: %d, Num Cells: %d, Run Time: %s, "+
+		"Time Step: %4.3f, Cell Speed: %4.3f, Stiffness: %4.3f.\n",
+		numGens, numFibres, numCells, time.Since(start).Truncate(time.Millisecond),
+		timeStep, cellSpeed, stiffness)
 	// write data to files
 	WriteToFile(positionArray)
 
