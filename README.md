@@ -42,3 +42,5 @@ The generated gif will also be saved on the local computer in the folder ".\Cell
 
 https://cmu.zoom.us/rec/share/QckshbcHYS1JBdKmLsVhL_TIXrVTwBqXpsqMxdqNB-9l7JlIATcZVGA_Jmt9LqHa.FVW5W2MJody5AJtt?startTime=1671250392000 <br>
 Passcode: nNB8?hL*
+
+There is also a copy of the video tutorial in the subfolder "Documents" with the name "CellularDysfunction_Tutorial.mp4"
