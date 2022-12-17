@@ -45,9 +45,9 @@ func mainHandler(w http.ResponseWriter, r *http.Request) {
 // inputHandler: Handler for when someone hits the "submit" button.
 func inputHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
-	for key, val := range r.Form {
-		fmt.Println("key", key, "val", val)
-	}
+	// for key, val := range r.Form {
+	// 	fmt.Println("key", key, "val", val)
+	// }
 	numGens, err := strconv.Atoi(r.Form["numGens"][0])
 	if err != nil {
 		panic("Failure in inputHandler.")

@@ -16,6 +16,7 @@ type Cell struct {
 	position, projection                             OrderedPair
 	perimeterVertices                                []OrderedPair
 	springs                                          []PseudoSpring
+	label                                            int
 }
 
 type Fibre struct {

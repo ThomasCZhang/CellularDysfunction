@@ -11,14 +11,24 @@ func main() {
 }
 
 func RunSimulation(numGens, numCells, numFibres int, timeStep, width, cellSpeed, stiffness float64) {
+	// arguments: number of generations (int), number of cells (int), number of fibres (int)
+
 	fmt.Println("Commands read in successfully.")
 
 	initialECM := InitializeECM(numFibres, numCells, width, cellSpeed, stiffness)
 
 	fmt.Println("ECM initialized. Beginning simulation.")
+
 	start := time.Now()
-	timeFrames := SimulateCellMotility(initialECM, numGens, timeStep)
+
+	timeFrames, positionArray := SimulateCellMotility(initialECM, numGens, timeStep)
+
 	fmt.Printf("Num Gens: %d, Num Fibres: %d, Num Cells: %d. Run Time: %s\n.", numGens, numFibres, numCells, time.Since(start).Truncate(time.Millisecond))
+	// write data to files
+	WriteToFile(positionArray)
+
+	// generate graph of mean-squared deviation from results
+	PlotGraph(positionArray, numCells)
 
 	fmt.Println("Simulation successful! Now drawing ECM.")
 

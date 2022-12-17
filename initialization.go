@@ -14,8 +14,6 @@ func InitializeECM(numFibres, numCells int, width, speed float64, stiffness floa
 	ECMstiffness = stiffness
 	CellSpeed = speed
 	var newECM ECM
-	// newECM.width = width
-	// newECM.stiffness = stiffness
 	newECM.fibres = InitializeFibres(numFibres, width)
 	newECM.cells = InitializeCells(numCells, width)
 	return &newECM
@@ -61,6 +59,7 @@ func InitializeCells(numCells int, width float64) []*Cell {
 	for i := 0; i <= numCells-1; i++ {
 
 		var newCell Cell
+		newCell.label = i + 1
 
 		newCell.radius = 15.0 // in micrometres
 		newCell.height = 2.6  // in micrometres
@@ -126,4 +125,20 @@ func GenerateYDirection(xDirection float64) float64 {
 	y := sign * math.Sqrt(1-math.Pow(xDirection, 2))
 
 	return y
+}
+
+// InitializePositionArray creates a 2-dimensional array for storing the positions of cells during the simulation
+// Input: initial ECM object and number of generations
+// Output: A 2-dimensional array where there is a new []float64 array for every cell at every generation, containing the time point value, the cell label as well as the x and y coordinates.
+func InitializePositionArray(initialECM *ECM, numGens int) [][]float64 {
+	newArray := make([][]float64, (numGens+1)*len(initialECM.cells))
+	initialTime := 0.0
+	for _, cell := range initialECM.cells {
+		values := make([]float64, 4)
+		values[0] = initialTime
+		values[1] = float64(cell.label)
+		values[2] = cell.position.x
+		values[3] = cell.position.y
+	}
+	return newArray
 }

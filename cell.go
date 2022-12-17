@@ -26,7 +26,7 @@ func (cell *Cell) UpdateCell(oldCell *Cell, fibres []*Fibre, threshold float64, 
 
 	var changeMagnitude float64
 	var indexMin int
-	// Then we will loop through the fibres again to find the smallest change in projection
+	// Then we will loop through the fibres again to find the smallest change in projectiono
 	for index, fibre := range nearbyFibres {
 		delta_magnitude := FindAngleChange(cell.projection, fibre.direction)
 		if index == 0 { // set default magnitude of change to first one
@@ -133,7 +133,6 @@ func (currCell *Cell) UpdatePosition(time float64) {
 	} else if currCell.position.y > ECMwidth {
 		currCell.position.y -= ECMwidth
 	}
-
 }
 
 // ComputeDragForce: Computes the drag force acting on a cell by all nearby fibres.
@@ -161,6 +160,7 @@ func (currCell *Cell) ComputeDragForce() OrderedPair {
 // CopyCell: Returns a pointer to a copy of a Cell object.
 func (c *Cell) CopyCell() *Cell {
 	var newCell Cell
+	newCell.label = c.label
 	newCell.radius = c.radius
 	newCell.height = c.height
 	// newCell.speed = c.speed

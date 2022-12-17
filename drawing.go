@@ -6,6 +6,7 @@ import (
 )
 
 /*
+Not necessary: Was for if I could get soft body physics working.
 ADD THIS TO canvas.go. NECESSARY FOR DRAWING POLYGONS.
 func (c *Canvas) BeginPath() {
 	c.gc.BeginPath()

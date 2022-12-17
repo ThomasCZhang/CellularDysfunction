@@ -7,15 +7,20 @@ import (
 // SimulateCellMotility takes a ECM object of cells and fibres and updates it over certain number of generations with a specified timestep.
 // Input: a initialECM, numGens and a timestep
 // Output: A slice of numGens+1 ECM objects that model cell and fibre movement.
-func SimulateCellMotility(initialECM *ECM, numGens int, time float64) []*ECM {
+func SimulateCellMotility(initialECM *ECM, numGens int, time float64) ([]*ECM, [][]float64) {
 	// range over some number of generations
 	timeFrames := make([]*ECM, numGens+1)
 	timeFrames[0] = initialECM
+
+	// make array to store cell identities and positions as they are updated
+	positionArray := InitializePositionArray(initialECM, numGens)
+
+	var timePoint float64
 	for gen := 1; gen <= numGens; gen++ {
-		timeFrames[gen] = timeFrames[gen-1].UpdateECM(time)
+		timePoint, timeFrames[gen], positionArray = timeFrames[gen-1].UpdateECM(time, timePoint, positionArray)
 		// fmt.Println("Generation i: ", timeFrames[gen].cells[0].position)
 	}
-	return timeFrames
+	return timeFrames, positionArray
 }
 
 // Distance: Takes two position ordered pairs and it returns the distance between these two points in 2-D space.
