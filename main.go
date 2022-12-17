@@ -10,6 +10,15 @@ func main() {
 	RunWebApp()
 }
 
+// RunSimulation: Simulates cells on an ECM matrix for a given number of generations
+// Input:
+// numGens (int): Number of generations to simulate the ECM.
+// numCells (int): Number of cells to put on the ECM.
+// numFibres (int): Number of fibres to put on the ECM.
+// timeStep (float64): Time passed per generation in hours.
+// width (float64): The width and length of the ECM "board".
+// cellSpeed (float64): The speed at which cells travel on the ECM.
+// stiffness (float64): The stiffness of the ECM matrix.
 func RunSimulation(numGens, numCells, numFibres int, timeStep, width, cellSpeed, stiffness float64) {
 	// arguments: number of generations (int), number of cells (int), number of fibres (int)
 
@@ -23,10 +32,11 @@ func RunSimulation(numGens, numCells, numFibres int, timeStep, width, cellSpeed,
 
 	timeFrames, positionArray := SimulateCellMotility(initialECM, numGens, timeStep)
 
-	fmt.Printf("Num Gens: %d, Num Fibres: %d, Num Cells: %d, Run Time: %s, "+
-		"Time Step: %4.3f, Cell Speed: %4.3f, Stiffness: %4.3f.\n",
-		numGens, numFibres, numCells, time.Since(start).Truncate(time.Millisecond),
-		timeStep, cellSpeed, stiffness)
+	fmt.Printf("Num Gens: %d, Time Step: %4.3f, Num Cells: %d, Num Fibres: %d, "+
+		" Stiffness: %4.3f, Cell Speed: %4.3f, Run Time: %s.\n",
+		numGens, timeStep, numCells,
+		numFibres, stiffness, cellSpeed,
+		time.Since(start).Truncate(time.Millisecond))
 	// write data to files
 	WriteToFile(positionArray)
 

@@ -176,7 +176,10 @@ func (fibre *Fibre) GetNonPivot() OrderedPair {
 	return endpoint2
 }
 
-// FindTheta: Find the angle between the line describing the fibre and the line between the pivot and the cell
+// FindTheta: Find the angle between the line describing the fibre and the line between the pivot and the cell.
+// Input: Opposite (float64) The length of the opposite side of the triangle
+// hypotenuse (float64) The length of the hypotenuse of the triangle
+// Output: (float64) the angle (in radians) calculated by arcsin(opposite/hypotenuse).
 func (f *Fibre) FindTheta(opposite, hypotenuse float64) float64 {
 	theta := math.Asin(opposite / hypotenuse) // theta = arcsin(opposite / hypotenuse)
 	if theta != theta {
@@ -186,6 +189,8 @@ func (f *Fibre) FindTheta(opposite, hypotenuse float64) float64 {
 }
 
 // CopyFibre: Returns a pointer to a copy of a Fibre object.
+// Input: f (*Fibre) Pointer to the fibre being copied.
+// Output: (*Fibre) Pointer to the copy of the fibre.
 func (f *Fibre) CopyFibre() *Fibre {
 	var newFibre Fibre
 	newFibre.direction = f.direction
@@ -196,7 +201,7 @@ func (f *Fibre) CopyFibre() *Fibre {
 	return &newFibre
 }
 
-// This is just a dead function... Wth is it even doing?
+// Finds the hypotenuse between the center of the cell and the pivot point of the fibre.
 func (fibre *Fibre) FindHypotenuse(currCell *Cell) float64 {
 	// Takes the position of the fibre
 	posFibre := fibre.position

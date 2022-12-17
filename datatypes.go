@@ -29,6 +29,7 @@ type OrderedPair struct {
 	x, y float64
 }
 
+// This data object was for the attempt at implementing soft-body physics.
 type PseudoSpring struct {
 	end1, end2 *OrderedPair // Ordered Pair objects representing the ends of the spring.
 	x0         float64      // the resting length of the "spring"
