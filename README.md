@@ -40,3 +40,5 @@ The generated gif will also be saved on the local computer in the folder ".\Cell
 
 ## Video Walkthrough:
 
+https://cmu.zoom.us/rec/share/QckshbcHYS1JBdKmLsVhL_TIXrVTwBqXpsqMxdqNB-9l7JlIATcZVGA_Jmt9LqHa.FVW5W2MJody5AJtt?startTime=1671250392000
+Passcode: nNB8?hL*
