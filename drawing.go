@@ -5,6 +5,17 @@ import (
 	"image"
 )
 
+/*
+ADD THIS TO canvas.go. NECESSARY FOR DRAWING POLYGONS.
+func (c *Canvas) BeginPath() {
+	c.gc.BeginPath()
+}
+
+func (c *Canvas) Close() {
+	c.gc.Close()
+}
+*/
+
 // AnimateSystem takes a slice of Universe objects along with a canvas width
 // parameter and a frequency parameter.
 // Every frequency steps, it generates a slice of images corresponding to drawing each Universe
@@ -29,7 +40,7 @@ func DrawECM(timePoints []*ECM, canvasWidth, frequency int, scalingFactor float6
 // object's bodies on a square canvas that is canvasWidth pixels x canvasWidth pixels.
 func (e *ECM) DrawToCanvas(canvasWidth int, scalingFactor float64) image.Image {
 	if e == nil {
-		panic("Can't Draw a nil Universe.")
+		panic("Can't Draw a nil ECM.")
 	}
 
 	// set a new square canvas
@@ -65,6 +76,25 @@ func (e *ECM) DrawToCanvas(canvasWidth int, scalingFactor float64) image.Image {
 		r := scalingFactor * (c1.radius / ECMwidth) * float64(canvasWidth)
 		c.Circle(cx, cy, r)
 		c.Fill()
+
+		/*
+			//This is for if soft body works
+			c.SetFillColor(canvas.MakeColor(200, 150, 200))
+			c.BeginPath()
+			for i := range c1.perimeterVertices {
+				x := c1.perimeterVertices[i].x / ECMwidth * float64(canvasWidth)
+				y := c1.perimeterVertices[i].y / ECMwidth * float64(canvasWidth)
+				if i == 0 {
+					c.MoveTo(x, y)
+				} else {
+					c.LineTo(x, y)
+				}
+			}
+			c.LineTo(c1.perimeterVertices[0].x/ECMwidth*float64(canvasWidth),
+				c1.perimeterVertices[0].y/ECMwidth*float64(canvasWidth))
+			c.Close()
+			c.FillStroke()
+		*/
 	}
 
 	// we want to return an image!
