@@ -6,27 +6,16 @@ import (
 )
 
 func main() {
+	RunWebApp()
+}
 
-	// arguments: number of generations (int), number of cells (int), number of fibres (int)
-
-	numGens := 100
-	timeStep := 1.0
-
-	numCells := 5
-	numFibres := 7500
-	stiffness := 0.95 // a value between 0 and 1
-	cellSpeed := 10.0 // in micrometres/ hour
-
-	width := 500.0 // the dimensions of a square ECM in micrometres
-
+func RunSimulation(numGens, numCells, numFibres int, timeStep, width, cellSpeed, stiffness float64) {
 	fmt.Println("Commands read in successfully.")
 
 	initialECM := InitializeECM(numFibres, numCells, width, cellSpeed, stiffness)
 
 	fmt.Println("ECM initialized. Beginning simulation.")
 
-	// timeFrames := make([]*ECM, 1)
-	// timeFrames[0] = initialECM
 	timeFrames := SimulateCellMotility(initialECM, numGens, timeStep)
 
 	fmt.Println("Simulation successful! Now drawing ECM.")
@@ -37,6 +26,6 @@ func main() {
 	imageList := DrawECM(timeFrames, canvasWidth, frequency, 1)
 
 	fmt.Println("Images drawn. Now generating GIF.")
-	gifhelper.ImagesToGIF(imageList, "CellMigration")
+	gifhelper.ImagesToGIF(imageList, "gifs/CellMigration")
 	fmt.Println("GIF drawn.")
 }

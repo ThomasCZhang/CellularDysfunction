@@ -55,6 +55,8 @@ func InitializeFibres(numFibres int, width float64) []*Fibre {
 func InitializeCells(numCells int, width float64) []*Cell {
 
 	CellArray := make([]*Cell, numCells)
+	numDivisions := 16
+	theta := 2 * math.Pi / float64(numDivisions)
 
 	for i := 0; i <= numCells-1; i++ {
 
@@ -76,11 +78,30 @@ func InitializeCells(numCells int, width float64) []*Cell {
 		newCell.projection.x = ((rand.Float64() - 0.5) * 2) // some random float in the interval [-1.0, 1.0)
 		newCell.projection.y = GenerateYDirection(newCell.position.x)
 
+		newCell.perimeterVertices = make([]OrderedPair, numDivisions)
+		newCell.springs = make([]PseudoSpring, numDivisions*2)
+		for j := range newCell.perimeterVertices {
+			newCell.perimeterVertices[j].x = newCell.position.x + newCell.radius*math.Cos(theta*float64(j))
+			newCell.perimeterVertices[j].y = newCell.position.y + newCell.radius*math.Sin(theta*float64(j))
+
+			// spring between perimeter verticies
+			end1 := &(newCell.perimeterVertices[j])
+			var end2 *OrderedPair
+			if j == numDivisions-1 {
+				end2 = &(newCell.perimeterVertices[0])
+			} else {
+				end2 = &(newCell.perimeterVertices[j+1])
+			}
+			newCell.springs[j].end1 = end1
+			newCell.springs[j].end2 = end2
+			newCell.springs[j].x0 = 2 * newCell.radius * math.Sin(theta/2.0)
+			// spring between perimeter and center
+			newCell.springs[numDivisions+j].end1 = end1
+			newCell.springs[numDivisions+j].end2 = &(newCell.position)
+			newCell.springs[numDivisions+j].x0 = newCell.radius
+		}
 		CellArray[i] = &newCell
 	}
-	// fmt.Println("DELETE THIS LATER. (Initialization.go)")
-	// CellArray[0].position.x = width / 2
-	// CellArray[0].position.y = width / 2
 
 	return CellArray
 }

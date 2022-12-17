@@ -25,8 +25,8 @@ func (e *ECM) UpdateECM(time float64) *ECM {
 		}
 	}
 
-	for _, cell := range newECM.cells {
-		cell.UpdateCell(newECM.fibres, thresh, time)
+	for i, cell := range newECM.cells {
+		cell.UpdateCell(e.cells[i], newECM.fibres, thresh, time)
 	}
 	return newECM
 }

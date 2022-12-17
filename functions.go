@@ -114,3 +114,16 @@ func CalculateAngleBetweenVectors2D(v1, v2 OrderedPair) float64 {
 	theta := math.Acos(cosTheta)
 	return theta
 }
+
+// FindAngleChange: Calculates the cosine of the angle between two vectors and
+// returns the value as a float64. If the angle is > pi/2 radians, then takes
+// then takes the negative change instead.
+// Input:
+// v1, v2 (OrderedPair) The two vectors that will be compared.
+func FindAngleChange(v1, v2 OrderedPair) float64 {
+	theta := CalculateAngleBetweenVectors2D(v1, v2)
+	if theta > math.Pi/2 {
+		theta -= math.Pi
+	}
+	return theta
+}

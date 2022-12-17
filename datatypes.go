@@ -14,6 +14,8 @@ type ECM struct {
 type Cell struct {
 	radius, height, integrin, shapeFactor, viscocity float64
 	position, projection                             OrderedPair
+	perimeterVertices                                []OrderedPair
+	springs                                          []PseudoSpring
 }
 
 type Fibre struct {
@@ -24,4 +26,9 @@ type Fibre struct {
 
 type OrderedPair struct {
 	x, y float64
+}
+
+type PseudoSpring struct {
+	end1, end2 *OrderedPair // Ordered Pair objects representing the ends of the spring.
+	x0         float64      // the resting length of the "spring"
 }

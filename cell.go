@@ -15,7 +15,10 @@ type Cell struct {
 // UpdateCell finds the new direction of a given cell based on the fibre that causes the least change in direction
 // Input: cell object and a list of updated fibres
 // Output: cell with updated projection and position
-func (cell *Cell) UpdateCell(fibres []*Fibre, threshold float64, time float64) {
+func (cell *Cell) UpdateCell(oldCell *Cell, fibres []*Fibre, threshold float64, time float64) {
+	// This was for the attempt to model the cell as a soft body object. It didn't work unfortunately.
+	// cell.UpdateShape(oldCell)
+
 	// range over all fibres and compute projection vectors caused by all fibres on the cell
 	// to make this easier, we can only pick fibres that are within a certain critical distance to the cell
 	nearbyFibres := cell.FindNearbyFibres(threshold, fibres)    // returns a slice of nearest fibres within a certain threshold distance
@@ -23,7 +26,7 @@ func (cell *Cell) UpdateCell(fibres []*Fibre, threshold float64, time float64) {
 
 	var changeMagnitude float64
 	var indexMin int
-	// Then we will loop through the fibres again to find the smallest change in projectiono
+	// Then we will loop through the fibres again to find the smallest change in projection
 	for index, fibre := range nearbyFibres {
 		delta_magnitude := FindAngleChange(cell.projection, fibre.direction)
 		if index == 0 { // set default magnitude of change to first one
@@ -93,24 +96,11 @@ func (c *Cell) CalculateNetForce(fibres []*Fibre) OrderedPair {
 	return netForce
 }
 
-// FindAngleChange: Calculates the cosine of the angle between two vectors and
-// returns the value as a float64. If the angle is > pi/2 radians, then takes
-// then takes the negative change instead.
-// Input:
-// v1, v2 (OrderedPair) The two vectors that will be compared.
-func FindAngleChange(v1, v2 OrderedPair) float64 {
-	theta := CalculateAngleBetweenVectors2D(v1, v2)
-	if theta > math.Pi/2 {
-		theta -= math.Pi
-	}
-	return theta
-}
-
 // UpdateProjection: Updates the projection vector of a cell. (Direction of polarity)
 // Input: currCell (*Cell) A pointer to the Cell object being updated.
 // newProjection (OrderedPair), the new projection vector of the cell.
 func (c *Cell) UpdateProjection(newProjection OrderedPair) {
-	if DotProduct2D(c.projection, newProjection) < 0 {
+	if DotProduct2D(c.projection, newProjection) < 0 { // Making sure the cell doesn't do a 180.
 		newProjection = MultiplyVectorByConstant2D(newProjection, -1.0)
 	}
 	// Update the projection vector of the cell
@@ -119,6 +109,7 @@ func (c *Cell) UpdateProjection(newProjection OrderedPair) {
 }
 
 // UpdatePosition uses the updated projection vector to change the position of the cell.
+// Input: The time step (in hours).
 func (currCell *Cell) UpdatePosition(time float64) {
 	// The postion of the cell using the velocity and timeStep
 
@@ -126,9 +117,12 @@ func (currCell *Cell) UpdatePosition(time float64) {
 	// Calculate the drag force using the projection vectors from the fibres
 	drag = currCell.ComputeDragForce()
 	drag.Normalize()
+
 	// Calculte the new position
 	currCell.position.x += (drag.x) * CellSpeed * time
 	currCell.position.y += (drag.y) * CellSpeed * time
+
+	// Putting the cells on a torus
 	if currCell.position.x < 0 {
 		currCell.position.x += ECMwidth
 	} else if currCell.position.x > ECMwidth {
@@ -139,6 +133,7 @@ func (currCell *Cell) UpdatePosition(time float64) {
 	} else if currCell.position.y > ECMwidth {
 		currCell.position.y -= ECMwidth
 	}
+
 }
 
 // ComputeDragForce: Computes the drag force acting on a cell by all nearby fibres.
@@ -150,7 +145,7 @@ func (currCell *Cell) ComputeDragForce() OrderedPair {
 	var Noise float64
 
 	// Calculate the noise
-	Noise = rand.Float64() * 1.0
+	Noise = rand.Float64()*2.0 - 1.0
 
 	// Compute the drag force
 	Drag.x = CellSpeed * currCell.shapeFactor * currCell.viscocity * currCell.projection.x
@@ -174,18 +169,89 @@ func (c *Cell) CopyCell() *Cell {
 	newCell.viscocity = c.viscocity
 	newCell.position = c.position
 	newCell.projection = c.projection
+	newCell.perimeterVertices = make([]OrderedPair, len(c.perimeterVertices))
+	newCell.springs = make([]PseudoSpring, len(c.springs))
+	for i := range c.perimeterVertices {
+		newCell.perimeterVertices[i].x = c.perimeterVertices[i].x
+		newCell.perimeterVertices[i].y = c.perimeterVertices[i].y
+
+		// spring between perimeter verticies
+		end1 := &(newCell.perimeterVertices[i])
+		var end2 *OrderedPair
+		if i == len(c.perimeterVertices)-1 {
+			end2 = &(newCell.perimeterVertices[0])
+		} else {
+			end2 = &(newCell.perimeterVertices[i+1])
+		}
+		newCell.springs[i].end1 = end1
+		newCell.springs[i].end2 = end2
+		newCell.springs[i].x0 = c.springs[i].x0
+		// spring between perimeter and center
+		newCell.springs[len(c.perimeterVertices)+i].end1 = end1
+		newCell.springs[len(c.perimeterVertices)+i].end2 = &(newCell.position)
+		newCell.springs[len(c.perimeterVertices)+i].x0 = c.springs[len(c.perimeterVertices)+i].x0
+
+	}
 	return &newCell
 }
 
-// Not quite sure what this is for.
-// FindProjection finds the new projection vector caused by a fibre on the given cell
-// Input: Current cell and fibre
-// Output: The new projection vector of the cell caused by the fibre based on the direction of the fibre and random noise.
-// func FindProjection(cell *Cell, fibre *Fibre) OrderedPair {
-// 	var newProjection OrderedPair
+// UpdatesShape updates the perimeter vertices of a Cell object.
+// Input:
+// c (*Cell): The cell whose shape is updated by this function.
+// oldCell (*Cell): The cell that represents "c" from the previous generation.
+func (c *Cell) UpdateShape(oldCell *Cell) {
+	for i := range c.springs {
+		movementMagnitude := oldCell.springs[i].CalculateSpringMoveMagnitude()
+		// Calculate the direction the ends of the spring should move
+		var delta OrderedPair
+		delta.x = oldCell.springs[i].end2.x - oldCell.springs[i].end1.x
+		delta.y = oldCell.springs[i].end2.y - oldCell.springs[i].end1.y
+		deltaMag := delta.Magnitude()
+		delta.x *= movementMagnitude / deltaMag
+		delta.y *= movementMagnitude / deltaMag
+		c.springs[i].end1.x += delta.x
+		c.springs[i].end1.y += delta.y
+		c.springs[i].end2.x -= delta.x
+		c.springs[i].end2.y -= delta.y
+	}
+}
 
-// 	newProjection.x = cell.projection.x + fibre.projection.x
-// 	newProjection.y = cell.projection.y + fibre.projection.y
+// CalculateSpringMoveMagnitude: Calculates how much the "weights" at each end of a
+// spring should move towards each other. Neither end is thought to be fixed. Note: This is a pseudospring,
+// so it doesn't update using the force equation (F = kx).
+// Input: scalingFactor (float64) a factor used to determine how much the ends of the spring should move.
+func (s PseudoSpring) CalculateSpringMoveMagnitude() float64 {
+	dx := s.end1.x - s.end2.x
+	dy := s.end1.y - s.end2.y
+	distance := math.Sqrt(dx*dx + dy*dy)
+	numerator := distance - s.x0
+	magnitude := math.Abs(numerator) * numerator / (4 * s.x0)
+	// if numerator > s.x0 {
+	// 	magnitude = numerator / 2
+	// }
+	// if magnitude < 0 {
+	// 	fmt.Println(magnitude, distance, s.x0)
+	// }
+	// fmt.Println(magnitude)
+	return magnitude
+}
 
-// 	return newProjection
-// }
+// FindClosestPerimVertex Finds the closest vertex in the direction of the drag force.
+// Input: drag (OrderedPair) drag is the force acting on the cell
+// currCell (*Cell) is the current cell being analyzed.
+func (currCell *Cell) FindClosestPerimVertex(drag OrderedPair) *OrderedPair {
+	// Find the perimeter vertex that's in the closest direction as drag.
+	var closestPerim *OrderedPair
+	maxDotProd := 0.0
+	for i := range currCell.perimeterVertices {
+		var delta OrderedPair
+		delta.x = currCell.perimeterVertices[i].x - currCell.position.x
+		delta.y = currCell.perimeterVertices[i].y - currCell.position.y
+		delta.Normalize()
+		if DotProduct2D(delta, drag) > maxDotProd {
+			closestPerim = &(currCell.perimeterVertices[i])
+			maxDotProd = DotProduct2D(delta, drag)
+		}
+	}
+	return closestPerim
+}
